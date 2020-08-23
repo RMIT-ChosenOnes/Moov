@@ -2,8 +2,8 @@
 session_start();
 require_once '../config.php';
 
-if ((!isset($_SESSION['loggedIn']) && $_SESSION['loggedIn'] != TRUE) || $_SESSION['accountType'] != 'Admin') {
-	//header('location: index.php');
+if ((!isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_in'] != TRUE) || $_SESSION['moov_portal_staff_role'] != 'Admin') {
+	header('location: /moov/portal/');
 }
 
 $get_account_sql = 'SELECT first_name, last_name, username, email_address, role, is_deactivated FROM portal_account WHERE account_id = ?';

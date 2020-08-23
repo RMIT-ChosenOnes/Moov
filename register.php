@@ -1,54 +1,89 @@
 <?php
 session_start();
 require_once 'config.php';
+$page_name = basename(htmlspecialchars($_SERVER['PHP_SELF']), '.php');
 
-// Receive input from client side
-$fName = $_POST['fName'];
-$lName = $_POST['lName'];
-$email = strtolower($_POST['email']);
-$password = $_POST['password'];
-$confirmPassword = $_POST['confirmPassword'];
-$hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+$user_first_name = $user_last_name = $user_email_address = $user_password = '';
+$user_first_name_err = $user_last_name_err = $user_email_address_err = $user_password_err = $user_confirm_password_err = '';
 
-// Validate password strength
-$uppercase = preg_match('@[A-Z]@', $password);
-$lowercase = preg_match('@[a-z]@', $password);
-$number    = preg_match('@[0-9]@', $password);
-$specialChars = preg_match('@[^\w]@', $password);
-
-// Prepare error message triggers
-$form_input_error = false;
-$password_match_error = false;
-$email_exists_error = false;
-$password_strength_error = false;
-
-if ($_POST['submit']) {
-	// Validate form inputs are not empty
-	if ($fName == NULL || $lName == NULL || $email == NULL || $password == NULL || $confirmPassword == NULL) {
-		$form_input_error = true;
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+	if (empty(trim($_POST['userFirstName']))) {
+		$user_first_name_err = 'Please enter your first name.';
+		
+	} else {
+		$user_first_name = trim($_POST['userFirstName']);
+		
 	}
-	// Validate if password meets the requirements
-	elseif (!$uppercase || !$lowercase || !$number || !$specialChars || strlen($password) < 8) {
-		$password_strength_error = true;
+	
+	if (empty(trim($_POST['userLastName']))) {
+		$user_last_name_err = 'Please enter your last name.';
+		
+	} else {
+		$user_last_name = trim($_POST['userLastName']);
+		
 	}
-	// validate if password and confirm password match
-	elseif ($password != $confirmPassword) {
-		$password_match_error = true;
-	} 
-	else {
-		// Search database for if email exists
-		$query = "select * from account where email_address = '$email'";
-		$record = mysqli_query($conn, $query) or die(mysqli_error($conn));
-		$row_count = mysqli_num_rows($record);
-		if ($row_count > 0){
-			// Trigger error alert for email existing in database
-			$email_exists_error = true;
-		} 
-		else {
-			// enter data to the database
-			$query = "insert into temp_account(first_name, last_name, email_address, password) values('$fName','$lName', '$email', '$hashedPassword')";
-			mysqli_query($conn, $query) or die(mysqli_error($conn));
-			echo '<script>window.location.href="drivingLicense.php";</script>';
+	
+	if (empty(trim($_POST['userEmailAddress']))) {
+		$user_email_address_err = 'Please enter your email address.';
+		
+	} else {
+		$check_email_address_duplication_sql = 'SELECT account_id FROM account WHERE email_address = "' . trim($_POST['userEmailAddress']) . '"';
+		$check_email_address_duplication = mysqli_query($conn, $check_email_address_duplication_sql);
+
+		if (mysqli_num_rows($check_email_address_duplication) > 0) {
+			$user_email_address_err = 'Email address is already in use. Please try another email address.';
+
+		} else {
+			$user_email_address = trim($_POST['userEmailAddress']);
+
+		}
+	}
+	
+	if (empty(trim($_POST['userPassword']))) {
+		$user_password_err = 'Please enter a valid password.';
+		
+	} elseif (!preg_match('/[a-z]+/', trim($_POST['userPassword'])) || !preg_match('/[A-Z]+/', trim($_POST['userPassword'])) || !preg_match('/[^a-zA-Z0-9]+/', trim($_POST['userPassword'])) || strlen(trim($_POST['userPassword'])) < 8) {
+		$user_password_err = 'Your password must contain at least one uppercase letter, one lowercase letter, one number digit, one special character, and have at least 8 characters long.';
+		
+	}
+	
+	if (empty(trim($_POST['userConfirmPassword']))) {
+		$user_confirm_password_err = 'Please confirm your password again.';
+		
+	} else {
+		if (trim($_POST['userPassword']) == trim($_POST['userConfirmPassword'])) {
+			$user_password = trim($_POST['userPassword']);
+			
+		} else {
+			$user_password_err = $user_confirm_password_err = 'Password does not matched. Please try again.';
+			
+		}
+		
+	}
+	
+	if (empty($user_first_name_err) && empty($user_last_name_err) && empty($user_email_address_err) && empty($user_password_err) && empty($user_confirm_passowrd_err)) {
+		$temp_register_user_sql = 'INSERT INTO temp_account (first_name, last_name, email_address, password) VALUES ("' . $user_first_name . '", "' . $user_last_name . '", "' . $user_email_address . '", "' . password_hash($user_password, PASSWORD_DEFAULT) . '")';
+		
+		if ($temp_register_stmt = mysqli_prepare($conn, $temp_register_user_sql)) {
+			mysqli_stmt_bind_param($temp_register_stmt, 'ssss', $param_first_name, $param_last_name, $param_email_address, $param_password);
+			
+			$param_first_name = $user_first_name;
+			$param_last_name = $user_last_name;
+			$param_email_address = $user_email_address;
+			$param_password = $user_password;
+			
+			if (mysqli_stmt_execute($temp_register_stmt)) {
+				$_SESSION['moov_user_temp_account_id'] = mysqli_insert_id($conn);
+				$_SESSION['moov_user_temp_account_first_name'] = $user_first_name;
+				$_SESSION['moov_user_temp_account_last_name'] = $user_last_name;
+				
+				unset($_POST);
+				header('location: register-driving-license');
+				
+			} else {
+				$register_error = TRUE;
+				
+			}
 		}
 	}
 }
@@ -66,6 +101,16 @@ if ($_POST['submit']) {
 	<meta name="keywords" content="">
 	<meta name="author" content="Chosen Ones">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	
+	<!-- Global site tag (gtag.js) - Google Analytics -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-171692999-2"></script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag(){dataLayer.push(arguments);}
+		gtag('js', new Date());
+
+		gtag('config', 'UA-171692999-2');
+	</script>
 
 	<!-- JavaScript from Bootstrap -->
 	<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
@@ -73,85 +118,125 @@ if ($_POST['submit']) {
 	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
 
 	<!-- CSS from Bootstrap v4.5.2 -->
-	<link rel="stylesheet" type="text/css" href="assets/style/bootstrap.css">
+	<link rel="stylesheet" type="text/css" href="/moov/assets/style/bootstrap.css">
 
 	<!-- Self Defined CSS -->
-	<link rel="stylesheet" type="text/css" href="assets/style/style.css?<?php echo date('l jS \of F Y h:i:s A'); ?>">
+	<link rel="stylesheet" type="text/css" href="/moov/assets/style/style.css?<?php echo date('l jS \of F Y h:i:s A'); ?>">
 
 	<!-- Favicon -->
-	<link rel="icon" type="image/png" sizes="96x96" href="assets/favicon/favicon-96x96.png">
-	<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon/favicon-32x32.png">
-	<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon/favicon-16x16.png">
+	<link rel="icon" type="image/png" sizes="96x96" href="/moov/assets/favicon/favicon-96x96.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/moov/assets/favicon/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/moov/assets/favicon/favicon-16x16.png">
 </head>
 
 <body>
 
 	<?php include 'header.php'; ?>
 
-	<container id="userRegister" class="d-flex m-0 p-0 vh-100">
+	<div class="container my-3">
+		<h1 class="text-center">Registration</h1>
+		
+		<?php
+		if ($register_error === TRUE) {
+            echo '
+            <div class="alert alert-warning my-4 alert-dismissible fade show" role="alert">
+                Oops! There is an error occured. Please try again later. If you continue to see this error, please contact us immediately.
 
-		<div class="container m-auto text-center">
-			<h1>REGISTRATION</h1>
-			<div id="registerCard" class="card bg-secondary mx-auto">
-
-				<div class="card-body">
-					<form class="mt-5 mx-lg-5" action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            ';
+        }
+        ?>
+		
+		<div class="container bg-secondary pt-4 pb-2 rounded">
+			<form action="<?php echo basename(htmlspecialchars($_SERVER['PHP_SELF']), '.php'); ?>" method="post">
+				<div class="form-group row align-items-center">
+					<label for="userFirstName" class="col-sm-3 col-form-label">First Name</label>
+					
+					<div class="col-sm-9">
+						<input type="text" class="form-control <?php echo !empty($user_first_name_err) ? 'border border-danger' : ''; ?>" id="userFirstName" name="userFirstName" value="<?php echo $_POST['userFirstName']; ?>">
+						
 						<?php
-						// Display error message if form is missing inputs
-						if ($form_input_error == true)
-							echo '<div class="alert alert-warning" role="alert">You have not completely filled the signup form.</div>';
-						// Display error message if passwords do not match
-						elseif ($password_match_error == true)
-							echo '<div class="alert alert-danger" role="alert">Passwords do not match. Please try again.</div>';
-						// Display error message if email was found in database
-						elseif ($email_exists_error == true)
-							echo '<div class="alert alert-warning" role="alert">The email you have entered currently belongs to an account. Please try another email.</div>';
-						// Display error message for password strength
-						elseif ($password_strength_error == true)
-							echo '<div class="alert alert-danger" role="alert">Password should be at least 8 characters in length and should include at least one upper case letter, one number, and one special character.</div>';
-						?>
-						<div class="form-group row">
-							<label for="fName" class="col-sm-2 col-form-label" style=text-align:left;>First Name</label>
-							<div class="col-sm-10">
-								<input type="text" class="form-control" id="fName" name= "fName">
-							</div>
-						</div>
-						<div class="form-group row">
-							<label for="lName" class="col-sm-2 col-form-label" style=text-align:left;>Last Name</label>
-							<div class="col-sm-10">
-								<input type="text" class="form-control" id="lName" name="lName">
-							</div>
-						</div>
-						<div class="form-group row">
-							<label for="email" class="col-sm-2 col-form-label" style=text-align:left;>Email Address</label>
-							<div class="col-sm-10">
-								<input type="email" class="form-control" id="email" name="email">
-							</div>
-						</div>
-						<div class="form-group row">
-							<label for="password" class="col-sm-2 col-form-label" style=text-align:left;>Password</label>
-							<div class="col-sm-10">
-								<input type="password" class="form-control" id="password" name="password">
-							</div>
-						</div>
-						<div class="form-group row">
-							<label for="confirmPassword" class="col-sm-2 col-form-label" style=text-align:left;>Confirm Password</label>
-							<div class="col-sm-10">
-								<input type="password" class="form-control" id="confirmPassword" name="confirmPassword">
-							</div>
-						</div>
+						if (isset($user_first_name_err) && !empty($user_first_name_err)) {
+							echo '<p class="text-danger mb-0 text-left">' . $user_first_name_err . '</p>';
 
-						<div class="form-group">
-							<input type="submit" class="btn btn-lg btn-primary btn-block" name="submit" value="Continue to Register">
-						</div>
-					</form>
+						}
+						?>
+					</div>
 				</div>
-				<div class="py-2 text-logo">
-					<p>Already have an account? <a href="#">Sign in</a>.</p>
+				
+				<div class="form-group row mt-4 align-items-center">
+					<label for="userLastName" class="col-sm-3 col-form-label">Last Name</label>
+					
+					<div class="col-sm-9">
+						<input type="text" class="form-control <?php echo !empty($user_last_name_err) ? 'border border-danger' : ''; ?>" id="userLastName" name="userLastName" value="<?php echo $_POST['userLastName']; ?>">
+						
+						<?php
+						if (isset($user_last_name_err) && !empty($user_last_name_err)) {
+							echo '<p class="text-danger mb-0 text-left">' . $user_last_name_err . '</p>';
+
+						}
+						?>
+					</div>
 				</div>
-			</div>
+				
+				<div class="form-group row mt-4 align-items-center">
+					<label for="userEmailAddress" class="col-sm-3 col-form-label">Email Address</label>
+					
+					<div class="col-sm-9">
+						<input type="email" class="form-control <?php echo !empty($user_email_address_err) ? 'border border-danger' : ''; ?>" id="userEmailAddress" name="userEmailAddress" value="<?php echo $_POST['userEmailAddress']; ?>">
+						
+						<?php
+						if (isset($user_email_address_err) && !empty($user_email_address_err)) {
+							echo '<p class="text-danger mb-0 text-left">' . $user_email_address_err . '</p>';
+
+						}
+						?>
+					</div>
+				</div>
+				
+				<div class="form-group row mt-4 align-items-center">
+					<label for="userPassword" class="col-sm-3 col-form-label">Password</label>
+					
+					<div class="col-sm-9">
+						<input type="password" class="form-control <?php echo !empty($user_password_err) ? 'border border-danger' : ''; ?>" id="userPassword" name="userPassword" aria-describedby="passwordInfo" value="<?php echo $_POST['userPassword']; ?>">
+						
+						<?php
+						if (isset($user_password_err) && !empty($user_password_err)) {
+							echo '<p class="text-danger mb-0">' . $user_password_err . '</p>';
+
+						} else {
+							echo '<small id="passwordInfo" class="form-text text-muted">Password must contain at least one uppercase letter, one lowercase letter, one number digit, one special character, and have at least 8 characters long.</small>';
+
+						}
+						?>
+					</div>
+				</div>
+				
+				<div class="form-group row mt-4 align-items-center">
+					<label for="userConfirmPassword" class="col-sm-3 col-form-label">Confirm Password</label>
+					
+					<div class="col-sm-9">
+						<input type="password" class="form-control <?php echo !empty($user_confirm_password_err) ? 'border border-danger' : ''; ?>" id="userConfirmPassword" name="userConfirmPassword" value="<?php echo $_POST['userConfirmPassword']; ?>">
+						
+						<?php
+						if (isset($user_confirm_password_err) && !empty($user_confirm_password_err)) {
+							echo '<p class="text-danger mb-0">' . $user_confirm_password_err . '</p>';
+
+						}
+						?>
+					</div>
+				</div>
+
+				<button type="submit" class="btn btn-secondary btn-block mt-5">Continue to Register</button>
+			</form>
+			
+			<p class="mb-0 mt-4 text-center">Already have an account? <a href="login">Login now.</a></p>
 		</div>
-	</container>
+	</div>
+	
 	<?php include 'footer.php'; ?>
 </body>
 

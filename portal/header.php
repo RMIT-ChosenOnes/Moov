@@ -1,4 +1,4 @@
-<nav class="navbar navbar-expand-lg navbar-light bg-secondary">
+<nav class="navbar navbar-expand-lg navbar-light bg-secondary sticky-top">
 	<a class="navbar-brand ml-lg-4" href="/moov/portal/">
 		<img src="/moov/portal/assets/logo/moov_portal_logo_100x50.png" class="d-inline-block align-top w-100" alt="Moov Portal" loading="lazy">
 	</a>
@@ -27,8 +27,8 @@
 					<div class="dropdown-divider"></div>
 					
 					<h6 class="dropdown-header">Staff <span class="text-danger">(ADMIN ONLY)</span></h6>
-					<a class="dropdown-item <?php echo isset($page_name) && $page_name == 'new staff' ? 'active' : ''; ?>" href="/moov/portal/database/new-staff">Register New Staff</a>
-					<a class="dropdown-item <?php echo isset($page_name) && $page_name == 'modify staff' ? 'active' : ''; ?>" href="/moov/portal/database/modify-staff">Modify Staff</a>
+					<a class="dropdown-item <?php echo isset($page_name) && $page_name == 'new-staff' ? 'active' : ''; ?>" href="/moov/portal/database/new-staff">Register New Staff</a>
+					<a class="dropdown-item <?php echo isset($page_name) && $page_name == 'modify-staff' ? 'active' : ''; ?>" href="/moov/portal/database/modify-staff">Modify Staff</a>
 				</div>
 			</li>
 			

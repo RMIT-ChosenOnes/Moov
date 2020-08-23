@@ -2,7 +2,7 @@
 session_start();
 require_once 'config.php';
 
-$login_username = $login_password = '';
+$referrer_url = $login_username = $login_password = '';
 $login_username_err = $login_password_err = $login_err = '';
 
 if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_in'] == TRUE) {
@@ -10,6 +10,8 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 	
 } else {
 	if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+		$referrer_url = trim($_POST['referrerUrl']);
+		
 		if (empty(trim($_POST['portalUsername']))) {
 			$login_username_err = 'Please enter a valid username.';
 			
@@ -65,7 +67,14 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 										
 									}
 									
-									header('location: /moov/portal/');
+									if (!empty($referrer_url)) {
+										header('location: ' . $referrer_url);
+										
+									} else {
+										header('location: /moov/portal/');
+										
+									}
+									
 									unset($_POST);
 									
 								} else {
@@ -137,6 +146,8 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 				<h1 class="card-title">Welcome to Moov Portal</h1>
 				
 				<form class="mt-5 mx-lg-5" action="<?php echo basename(htmlspecialchars($_SERVER['PHP_SELF']), '.php'); ?>" method="post">
+					<input type="hidden" id="referrerUrl" name="referrerUrl" value="<?php echo $_GET['url'] . $_POST['referrerUrl'] ?>">
+					
 					<div class="col-auto p-0">
 						<label class="sr-only" for="portalUsername">Username</label>
 

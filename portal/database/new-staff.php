@@ -2,120 +2,136 @@
 session_start();
 require_once '../config.php';
 $parent_page_name = 'database';
-$page_name = 'new staff';
+$page_name = basename(htmlspecialchars($_SERVER['PHP_SELF']), '.php');
 
 $staff_role = $staff_first_name = $staff_last_name = $staff_username = $staff_email_address = $staff_password = '';
 $staff_role_err = $staff_first_name_err = $staff_last_name_err = $staff_username_err = $staff_email_address_err = $staff_password_err = $staff_confirm_password_err = '';
 
-if (!isset($_SESSION['moov_portal_logged_in'])) {
-	if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-		if (empty(trim($_POST['staffRole'])) || trim($_POST['staffRole']) == 0) {
-			$staff_role_err = 'Please assign an appropriate role.';
-			
-		} else {
-			$staff_role = trim($_POST['staffRole']);
-			
-		}
-		
-		if (empty(trim($_POST['staffFirstName']))) {
-			$staff_first_name_err = 'Please enter staff\'s first name.';
-			
-		} else {
-			$staff_first_name = trim($_POST['staffFirstName']);
-			
-		}
-		
-		if (empty(trim($_POST['staffLastName']))) {
-			$staff_last_name_err = 'Please enter staff\'s last name.';
-			
-		} else {
-			$staff_last_name = trim($_POST['staffLastName']);
-			
-		}
-		
-		if (empty(trim($_POST['staffUsername']))) {
-			$staff_username_err = 'Please enter an username.';
-			
-		} else {
-			$check_username_duplication_sql = 'SELECT account_id FROM portal_account WHERE username = "' . trim($_POST['staffUsername']) . '"';
-			$check_username_duplication = mysqli_query($conn, $check_username_duplication_sql);
-			
-			if (mysqli_num_rows($check_username_duplication) > 0) {
-				$staff_username_err = 'Username has already been taken. Please try another username.';
-						
-			} else {
-				$staff_username = trim($_POST['staffUsername']);
-				
-			}
-		}
-		
-		if (empty(trim($_POST['staffEmailAddress']))) {
-			$staff_email_address_err = 'Please enter staff\'s email address.';
-			
-		} else {
-			$check_email_duplication_sql = 'SELECT account_id FROM portal_account WHERE email_address = "' . trim($_POST[staffEmailAddress]) . '"';
-			$check_email_duplication = mysqli_query($conn, $check_email_duplication_sql);
-			
-			if (mysqli_num_rows($check_email_duplication) > 0) {
-				$staff_email_address_err = 'Email address has already been taken. Please try another email address.';
-				
-			} else {
-				$staff_email_address = trim($_POST['staffEmailAddress']);
-				
-			}
-		}
-		
-		if (empty(trim($_POST['staffPassword']))) {
-			$staff_password_err = 'Please enter a valid password.';
-			
-		}
-		
-		if (empty(trim($_POST['staffConfirmPassword']))) {
-			$staff_confirm_password_err = 'Please confirm the password again.';
-			
-		} else {
-			if (trim($_POST['staffPassword']) == trim($_POST['staffConfirmPassword'])) {
-				$staff_password = trim($_POST['staffPassword']);
-				
-			} else {
-				$staff_password_err = $staff_confirm_password_err = 'Password does not matched. Please try again.';
-				
-			}
-		}
-		
-		if (empty($staff_role_err) && empty($staff_first_name_err) && empty($staff_last_name_err) && empty($staff_username_err) && empty($staff_email_address_err) && empty($staff_password_err) && empty($staff_confirm_password_err)) {
-			$register_staff_sql = 'INSERT INTO portal_account (first_name, last_name, username, email_address, password, role) VALUES ("' . $staff_first_name . '", "' . $staff_last_name . '", "' . $staff_username . '", "' . $staff_email_address . '", "' . password_hash($staff_password, PASSWORD_DEFAULT) . '", ' . $staff_role .')';
-			
-			if ($register_stmt = mysqli_prepare($conn, $register_staff_sql)) {
-				mysqli_stmt_bind_param($register_stmt, 'sssssi', $param_first_name, $param_last_name, $param_username, $param_email_address, $param_password, $param_role);
-				
-				$param_first_name = $staff_first_name;
-				$param_last_name = $staff_last_name;
-				$param_username = $staff_username;
-				$param_email_address = $staff_email_address;
-				$param_password = $staff_password;
-				$param_role = $staff_role;
-				
-				if (mysqli_stmt_execute($register_stmt)) {
-					if (isset($_POST['staffNotify']) && $_POST['staffNotify'] == 'on') {
-						$mail_email = $staff_email_address;
-						$mail_name = $staff_first_name;
-						$mail_subject = 'Your Account Access to Moov Portal';
-						$mail_body = 'Dear ' . $staff_first_name . ',<br/><br/>Please find below your account access to Moov Portal.<br/><br/>Portal: <a href="http://kftech.ddns.net/moov/portal/" target="_blank">http://kftech.ddns.net/moov/portal/</a><br/>Username: ' . $staff_username . '<br/>Password: ' . $staff_password . '<br/><br/>Please do not share your password with anyone else.<br/><br/>Thank you.<br/><br/>Kind Regards,<br/>Moov';
+if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_in'] == TRUE) {
+	if (isset($_SESSION['moov_portal_staff_role']) && $_SESSION['moov_portal_staff_role'] == 'Admin') {
+		if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+			if (empty(trim($_POST['staffRole'])) || trim($_POST['staffRole']) == 0) {
+				$staff_role_err = 'Please assign an appropriate role.';
 
-						require_once '../mail.php';
-					}
-					
-					$registered = TRUE;
-					$checked_notify = TRUE;
-					unset($_POST);
-					
+			} else {
+				$staff_role = trim($_POST['staffRole']);
+
+			}
+
+			if (empty(trim($_POST['staffFirstName']))) {
+				$staff_first_name_err = 'Please enter staff\'s first name.';
+
+			} else {
+				$staff_first_name = trim($_POST['staffFirstName']);
+
+			}
+
+			if (empty(trim($_POST['staffLastName']))) {
+				$staff_last_name_err = 'Please enter staff\'s last name.';
+
+			} else {
+				$staff_last_name = trim($_POST['staffLastName']);
+
+			}
+
+			if (empty(trim($_POST['staffUsername']))) {
+				$staff_username_err = 'Please enter an username.';
+
+			} else {
+				$check_username_duplication_sql = 'SELECT account_id FROM portal_account WHERE username = "' . trim($_POST['staffUsername']) . '"';
+				$check_username_duplication = mysqli_query($conn, $check_username_duplication_sql);
+
+				if (mysqli_num_rows($check_username_duplication) > 0) {
+					$staff_username_err = 'Username has already been taken. Please try another username.';
+
 				} else {
-					echo 'Error: ' . $register_staff_sql . '<br/>' . mysqli_error($conn);
+					$staff_username = trim($_POST['staffUsername']);
+
+				}
+			}
+
+			if (empty(trim($_POST['staffEmailAddress']))) {
+				$staff_email_address_err = 'Please enter staff\'s email address.';
+
+			} else {
+				$check_email_duplication_sql = 'SELECT account_id FROM portal_account WHERE email_address = "' . trim($_POST[staffEmailAddress]) . '"';
+				$check_email_duplication = mysqli_query($conn, $check_email_duplication_sql);
+
+				if (mysqli_num_rows($check_email_duplication) > 0) {
+					$staff_email_address_err = 'Email address is already in use. Please try another email address.';
+
+				} else {
+					$staff_email_address = trim($_POST['staffEmailAddress']);
+
+				}
+			}
+
+			if (empty(trim($_POST['staffPassword']))) {
+				$staff_password_err = 'Please enter a valid password.';
+
+			} elseif (!preg_match('/[a-z]+/', trim($_POST['staffPassword'])) || !preg_match('/[A-Z]+/', trim($_POST['staffPassword'])) || !preg_match('/[^a-zA-Z0-9]+/', trim($_POST['staffPassword'])) || strlen(trim($_POST['staffPassword'])) < 8) {
+				$staff_password_err = 'Password must contain at least one uppercase letter, one lowercase letter, one number digit, one special character, and have at least 8 characters long.';
+
+			}
+
+			if (empty(trim($_POST['staffConfirmPassword']))) {
+				$staff_confirm_password_err = 'Please confirm the password again.';
+
+			} else {
+				if (trim($_POST['staffPassword']) == trim($_POST['staffConfirmPassword'])) {
+					$staff_password = trim($_POST['staffPassword']);
+
+				} else {
+					$staff_password_err = $staff_confirm_password_err = 'Password does not matched. Please try again.';
+
+				}
+			}
+
+			if (empty($staff_role_err) && empty($staff_first_name_err) && empty($staff_last_name_err) && empty($staff_username_err) && empty($staff_email_address_err) && empty($staff_password_err) && empty($staff_confirm_password_err)) {
+				$register_staff_sql = 'INSERT INTO portal_account (first_name, last_name, username, email_address, password, role) VALUES ("' . $staff_first_name . '", "' . $staff_last_name . '", "' . $staff_username . '", "' . $staff_email_address . '", "' . password_hash($staff_password, PASSWORD_DEFAULT) . '", ' . $staff_role .')';
+
+				if ($register_stmt = mysqli_prepare($conn, $register_staff_sql)) {
+					mysqli_stmt_bind_param($register_stmt, 'sssssi', $param_first_name, $param_last_name, $param_username, $param_email_address, $param_password, $param_role);
+
+					$param_first_name = $staff_first_name;
+					$param_last_name = $staff_last_name;
+					$param_username = $staff_username;
+					$param_email_address = $staff_email_address;
+					$param_password = $staff_password;
+					$param_role = $staff_role;
+
+					if (mysqli_stmt_execute($register_stmt)) {
+						if (isset($_POST['staffNotify']) && $_POST['staffNotify'] == 'on') {
+							$mail_sender = 'Moov Portal Admin';
+							$mail_email = $staff_email_address;
+							$mail_name = $staff_first_name;
+							$mail_subject = 'Your Account Access to Moov Portal';
+							$mail_body = 'Dear ' . $staff_first_name . ',<br/><br/>Please find below your account access to Moov Portal.<br/><br/>Portal: <a href="http://kftech.ddns.net/moov/portal/" target="_blank">http://kftech.ddns.net/moov/portal/</a><br/>Username: ' . $staff_username . '<br/>Password: ' . $staff_password . '<br/><br/>Please do not share your password with anyone else.<br/><br/>Thank you.<br/><br/>Kind Regards,<br/>Moov Admin';
+
+							require_once '../mail.php';
+							
+							$email_notification = TRUE;
+							
+						}
+
+						$registered = TRUE;
+						$checked_notify = TRUE;
+						unset($_POST);
+
+					} else {
+						echo 'Error: ' . $register_staff_sql . '<br/>' . mysqli_error($conn);
+						
+					}
 				}
 			}
 		}
+	} else {
+		header('location: /moov/portal/');
+		
 	}
+} else {
+	header('location: /moov/portal/login?url=/moov/portal/' . $parent_page_name . '/' . $page_name);
+	
 }
 ?>
 
@@ -170,6 +186,18 @@ if (!isset($_SESSION['moov_portal_logged_in'])) {
             echo '
             <div class="alert alert-success my-4 alert-dismissible fade show" role="alert">
                 Account registered successfully.
+
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            ';
+        }
+		
+		if ($email_notification === TRUE) {
+            echo '
+            <div class="alert alert-success my-4 alert-dismissible fade show" role="alert">
+                Email notification sent successfully.
 
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -251,7 +279,7 @@ if (!isset($_SESSION['moov_portal_logged_in'])) {
 						echo '<p class="text-danger mb-0">' . $staff_username_err . '</p>';
 						
 					} else {
-						echo '<small id="usernameInfo" class="form-text text-muted font-italic">Format: firstname.lastname. Username can\'t be changed after registration.</small>';
+						echo '<small id="usernameInfo" class="form-text text-muted">Format: firstname.lastname. Username can\'t be changed after registration.</small>';
 						
 					}
 					?>
@@ -275,12 +303,15 @@ if (!isset($_SESSION['moov_portal_logged_in'])) {
 				<div class="form-group col-md-6">
 					<label for="staffPassword">Password</label>
 					
-					<input type="password" class="form-control <?php echo !empty($staff_password_err) ? 'border border-danger' : ''; ?>" id="staffPassword" name="staffPassword" value="<?php echo $_POST['staffPassword']; ?>">
+					<input type="password" class="form-control <?php echo !empty($staff_password_err) ? 'border border-danger' : ''; ?>" id="staffPassword" name="staffPassword" aria-describedby="passwordInfo" value="<?php echo $_POST['staffPassword']; ?>">
 					
 					<?php
 					if (isset($staff_password_err) && !empty($staff_password_err)) {
 						echo '<p class="text-danger mb-0">' . $staff_password_err . '</p>';
-						
+
+					} else {
+						echo '<small id="passwordInfo" class="form-text text-muted">Password must contain at least one uppercase letter, one lowercase letter, one number digit, one special character, and have at least 8 characters long.</small>';
+
 					}
 					?>
 				</div>

@@ -2,96 +2,109 @@
 session_start();
 require_once '../config.php';
 $parent_page_name = 'database';
-$page_name = 'modify staff';
+$page_name = basename(htmlspecialchars($_SERVER['PHP_SELF']), '.php');
 
 $selected_staff_id = $modify_first_name = $modify_last_name = $modify_email_address = $modify_role = $modify_password = $modify_account_status = '';
 $modify_first_name_err = $modify_last_name_err = $modify_email_address_err = $modify_role_err = $modify_password_err = $modify_confirm_password_err = '';
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-	$selected_staff_id = $_POST['selectedStaffId'];
-	
-	if (empty(trim($_POST['staffFirstName']))) {
-		$modify_first_name_err = 'Please enter staff\'s first name.';
-		
-	} else {
-		$modify_first_name = trim($_POST['staffFirstName']);
-		
-	}
-		
-	if (empty(trim($_POST['staffLastName']))) {
-		$modify_last_name_err = 'Please enter staff\'s last name.';
-		
-	} else {
-		$modify_last_name = trim($_POST['staffLastName']);
-		
-	}
-	
-	if (empty(trim($_POST['staffEmailAddress']))) {
-		$modify_email_address_err = 'Please enter staff\'s email address.';
-		
-	} else {
-		$modify_email_address = trim($_POST['staffEmailAddress']);
-		
-	}
-	
-	if (empty(trim($_POST['staffRole'])) || trim($_POST['staffRole']) == 0) {
-		$modify_role_err = 'Please assign an appropriate role.';
-		
-	} else {
-		$modify_role = trim($_POST['staffRole']);
-		
-	}
-	
-	if (!empty(trim($_POST['staffUpdatePassword']))) {
-		if (empty(trim($_POST['staffConfirmPassword']))) {
-			$modify_confirm_password_err = 'Please confirm the password again.';
-			
-		} else {
-			if (trim($_POST['staffUpdatePassword']) == trim($_POST['staffConfirmPassword'])) {
-				$modify_password = trim($_POST['staffUpdatePassword']);
-				
+if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_in'] == TRUE) {
+	if (isset($_SESSION['moov_portal_staff_role']) && $_SESSION['moov_portal_staff_role'] == 'Admin') {
+		if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+			$selected_staff_id = $_POST['selectedStaffId'];
+
+			if (empty(trim($_POST['staffFirstName']))) {
+				$modify_first_name_err = 'Please enter staff\'s first name.';
+
 			} else {
-				$modify_password_err = $modify_confirm_password_err = 'Password does not matched. Please try again.';
-				
+				$modify_first_name = trim($_POST['staffFirstName']);
+
 			}
-		}
-	}
-	
-	if (isset($_POST['staffDeactivate']) && $_POST['staffDeactivate'] == 'on') {
-		$modify_account_status = 1;
-		
-	} else {
-		$modify_account_status = 0;
-		
-	}
-	
-	if (empty($modify_first_name_err) && empty($modify_last_name_err) && empty($modify_email_address_err) && empty($modify_role_err) && empty($modify_password_err) && empty($modify_confirm_password_err)) {
-		$update_staff_account_sql = 'UPDATE portal_account SET first_name="' . $modify_first_name . '", last_name="' . $modify_last_name . '", email_address="' . $modify_email_address . '", role=' . $modify_role . ', is_deactivated=' . $modify_account_status . ' WHERE account_id=' . $selected_staff_id;
-		
-		if (mysqli_query($conn, $update_staff_account_sql)) {
-			if (!empty($modify_password)) {
-				$update_staff_password_sql = 'UPDATE portal_account SET password="' . password_hash($modify_password, PASSWORD_DEFAULT) . '" WHERE account_id=' . $selected_staff_id;
+
+			if (empty(trim($_POST['staffLastName']))) {
+				$modify_last_name_err = 'Please enter staff\'s last name.';
+
+			} else {
+				$modify_last_name = trim($_POST['staffLastName']);
+
+			}
+
+			if (empty(trim($_POST['staffEmailAddress']))) {
+				$modify_email_address_err = 'Please enter staff\'s email address.';
+
+			} else {
+				$modify_email_address = trim($_POST['staffEmailAddress']);
+
+			}
+
+			if (empty(trim($_POST['staffRole'])) || trim($_POST['staffRole']) == 0) {
+				$modify_role_err = 'Please assign an appropriate role.';
+
+			} else {
+				$modify_role = trim($_POST['staffRole']);
+
+			}
+
+			if (!empty(trim($_POST['staffUpdatePassword']))) {
+				if (!preg_match('/[a-z]+/', trim($_POST['staffUpdatePassword'])) || !preg_match('/[A-Z]+/', trim($_POST['staffUpdatePassword'])) || !preg_match('/[^a-zA-Z0-9]+/', trim($_POST['staffUpdatePassword'])) || strlen(trim($_POST['staffUpdatePassword'])) < 8) {
+					$modify_password_err = 'Password must contain at least one uppercase letter, one lowercase letter, one number digit, one special character, and have at least 8 characters long.';
+				}
 				
-				if (mysqli_query($conn, $update_staff_password_sql)) {
-					$record_updated = TRUE;
-					
+				if (empty(trim($_POST['staffConfirmPassword']))) {
+					$modify_confirm_password_err = 'Please confirm the password again.';
+
 				} else {
-					echo 'Error: ' . $update_staff_password_sql . '<br/>' . mysqli_error($conn);
-					
+					if (trim($_POST['staffUpdatePassword']) == trim($_POST['staffConfirmPassword'])) {
+						$modify_password = trim($_POST['staffUpdatePassword']);
+
+					} else {
+						$modify_password_err = $modify_confirm_password_err = 'Password does not matched. Please try again.';
+
+					}
 				}
 			}
-			
-			$record_updated = TRUE;
-			unset($_POST);
-			
-		} else {
-			echo 'Error: ' . $update_staff_account_sql . '<br/>' . mysqli_error($conn);
-			
+
+			if (isset($_POST['staffDeactivate']) && $_POST['staffDeactivate'] == 'on') {
+				$modify_account_status = 1;
+
+			} else {
+				$modify_account_status = 0;
+
+			}
+
+			if (empty($modify_first_name_err) && empty($modify_last_name_err) && empty($modify_email_address_err) && empty($modify_role_err) && empty($modify_password_err) && empty($modify_confirm_password_err)) {
+				$update_staff_account_sql = 'UPDATE portal_account SET first_name="' . $modify_first_name . '", last_name="' . $modify_last_name . '", email_address="' . $modify_email_address . '", role=' . $modify_role . ', is_deactivated=' . $modify_account_status . ' WHERE account_id=' . $selected_staff_id;
+
+				if (mysqli_query($conn, $update_staff_account_sql)) {
+					if (!empty($modify_password)) {
+						$update_staff_password_sql = 'UPDATE portal_account SET password="' . password_hash($modify_password, PASSWORD_DEFAULT) . '" WHERE account_id=' . $selected_staff_id;
+
+						if (mysqli_query($conn, $update_staff_password_sql)) {
+							$record_updated = TRUE;
+
+						} else {
+							echo 'Error: ' . $update_staff_password_sql . '<br/>' . mysqli_error($conn);
+
+						}
+					}
+
+					$record_updated = TRUE;
+					unset($_POST);
+
+				} else {
+					echo 'Error: ' . $update_staff_account_sql . '<br/>' . mysqli_error($conn);
+
+				}
+			} else {
+				$record_updated = FALSE;
+
+			}
 		}
 	} else {
-		$record_updated = FALSE;
+		header('location: /moov/portal/');
 		
 	}
+} else {
+	header('location: /moov/portal/login?url=/moov/portal/' . $parent_page_name . '/' . $page_name);
 	
 }
 ?>
@@ -189,7 +202,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 					</div>
 				</div>
 
-				<div class="form-group row">
+				<div class="form-group row mt-4">
 					<label for="staffFirstName" class="col-sm-3 col-form-label">First Name</label>
 
 					<div class="col-sm-9">
@@ -204,7 +217,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 					</div>
 				</div>
 
-				<div class="form-group row">
+				<div class="form-group row mt-4">
 					<label for="staffLastName" class="col-sm-3 col-form-label">Last Name</label>
 
 					<div class="col-sm-9">
@@ -219,7 +232,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 					</div>
 				</div>
 
-				<div class="form-group row">
+				<div class="form-group row mt-4">
 					<label for="staffEmailAddress" class="col-sm-3 col-form-label">Email Address</label>
 
 					<div class="col-sm-9">
@@ -234,7 +247,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 					</div>
 				</div>
 
-				<div class="form-group row">
+				<div class="form-group row mt-4">
 					<label for="staffRole" class="col-sm-3 col-form-label">Role</label>
 
 					<div class="col-sm-9">
@@ -272,18 +285,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 					<label for="staffUpdatePassword" class="col-sm-3 col-form-label">Update Password</label>
 
 					<div class="col-sm-9">
-						<input type="password" class="form-control <?php echo !empty($modify_password_err) ? 'border border-danger' : ''; ?>" id="staffUpdatePassword" name="staffUpdatePassword" value="<?php echo $_POST['staffUpdatePassword']; ?>">
-
+						<input type="password" class="form-control <?php echo !empty($modify_password_err) ? 'border border-danger' : ''; ?>" id="staffUpdatePassword" name="staffUpdatePassword" aria-describedby="passwordInfo" value="<?php echo $_POST['staffUpdatePassword']; ?>">
+						
 						<?php
 						if (isset($modify_password_err) && !empty($modify_password_err)) {
-							echo '<p class="text-danger mb-0 text-left">' . $modify_password_err . '</p>';
+							echo '<p class="text-danger mb-0">' . $modify_password_err . '</p>';
+
+						} else {
+							echo '<small id="passwordInfo" class="form-text text-muted">Password must contain at least one uppercase letter, one lowercase letter, one number digit, one special character, and have at least 8 characters long.</small>';
 
 						}
 						?>
 					</div>
 				</div>
 
-				<div class="form-group row">
+				<div class="form-group row mt-4">
 					<label for="staffConfirmPassword" class="col-sm-3 col-form-label">Confirm Password</label>
 
 					<div class="col-sm-9">

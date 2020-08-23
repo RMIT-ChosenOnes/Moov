@@ -16,9 +16,9 @@ try {
 	$mail->Password     = 'cegbor-9qeqwa-Dirjef';
 
 	// Recipients
-	$mail->setFrom('moov.adm@outlook.com', 'Moov');
+	$mail->setFrom('moov.adm@outlook.com', $mail_sender);
 	$mail->addAddress($mail_email, $mail_name);
-	$mail->addReplyTo('moov.adm@outlook.com', 'Moov');
+	$mail->addReplyTo('moov.adm@outlook.com', $mail_sender);
 
 	// Mail
 	$mail->isHTML(true);

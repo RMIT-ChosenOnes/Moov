@@ -2,6 +2,13 @@
 session_start();
 require_once 'config.php';
 $page_name = 'dashboard';
+
+if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_in'] == TRUE) {
+	
+} else {
+	header('location: /moov/portal/login');
+	
+}
 ?>
 
 <!DOCTYPE html>
