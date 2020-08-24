@@ -16,9 +16,9 @@ try {
 	$mail->Password     = 'cegbor-9qeqwa-Dirjef';
 
 	// Recipients
-	$mail->setFrom('moov.adm@outlook.com', 'Moov Portal Admin');
+	$mail->setFrom('moov.adm@outlook.com', 'Moov Admin');
 	$mail->addAddress($mail_email, $mail_name);
-	$mail->addReplyTo('moov.adm@outlook.com', 'Moov Portal Admin');
+	$mail->addReplyTo('moov.adm@outlook.com', 'Moov Admin');
 
 	// Mail
 	$mail->isHTML(true);

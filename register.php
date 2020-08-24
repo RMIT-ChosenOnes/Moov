@@ -1,31 +1,49 @@
 <?php
 session_start();
 require_once 'config.php';
-$page_name = basename(htmlspecialchars($_SERVER['PHP_SELF']), '.php');
+$page_name = 'register';
 
 $user_first_name = $user_last_name = $user_email_address = $user_password = '';
 $user_first_name_err = $user_last_name_err = $user_email_address_err = $user_password_err = $user_confirm_password_err = '';
 
+if (isset($_SESSION['moov_user_temp_account_id']) && !empty($_SESSION['moov_user_temp_account_id'])) {
+	header('location: /moov/register-driving-license');
+	
+} elseif (isset($_SESSION['moov_user_logged_in']) && $_SESSION['moov_user_logged_in'] == TRUE) {
+	header('location: /moov/');
+	
+}
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 	if (empty(trim($_POST['userFirstName']))) {
 		$user_first_name_err = 'Please enter your first name.';
-		
+
 	} else {
-		$user_first_name = trim($_POST['userFirstName']);
-		
+		if (preg_match('/^[a-zA-zw\-\s]+$/', trim($_POST['userFirstName']))) {
+			$user_first_name = trim($_POST['userFirstName']);
+
+		} else {
+			$user_first_name_err = 'Please enter a valid first name.';
+
+		}
 	}
-	
+
 	if (empty(trim($_POST['userLastName']))) {
 		$user_last_name_err = 'Please enter your last name.';
-		
+
 	} else {
-		$user_last_name = trim($_POST['userLastName']);
-		
+		if (preg_match('/^[a-zA-zw\-\s]+$/', trim($_POST['userLastName']))) {
+			$user_last_name = trim($_POST['userLastName']);
+
+		} else {
+			$user_last_name_err = 'Please enter a valid last name.';
+
+		}
 	}
-	
+
 	if (empty(trim($_POST['userEmailAddress']))) {
 		$user_email_address_err = 'Please enter your email address.';
-		
+
 	} else {
 		$check_email_address_duplication_sql = 'SELECT account_id FROM account WHERE email_address = "' . trim($_POST['userEmailAddress']) . '"';
 		$check_email_address_duplication = mysqli_query($conn, $check_email_address_duplication_sql);
@@ -38,51 +56,51 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 		}
 	}
-	
+
 	if (empty(trim($_POST['userPassword']))) {
 		$user_password_err = 'Please enter a valid password.';
-		
+
 	} elseif (!preg_match('/[a-z]+/', trim($_POST['userPassword'])) || !preg_match('/[A-Z]+/', trim($_POST['userPassword'])) || !preg_match('/[^a-zA-Z0-9]+/', trim($_POST['userPassword'])) || strlen(trim($_POST['userPassword'])) < 8) {
 		$user_password_err = 'Your password must contain at least one uppercase letter, one lowercase letter, one number digit, one special character, and have at least 8 characters long.';
-		
+
 	}
-	
+
 	if (empty(trim($_POST['userConfirmPassword']))) {
 		$user_confirm_password_err = 'Please confirm your password again.';
-		
+
 	} else {
 		if (trim($_POST['userPassword']) == trim($_POST['userConfirmPassword'])) {
 			$user_password = trim($_POST['userPassword']);
-			
+
 		} else {
 			$user_password_err = $user_confirm_password_err = 'Password does not matched. Please try again.';
-			
+
 		}
-		
+
 	}
-	
+
 	if (empty($user_first_name_err) && empty($user_last_name_err) && empty($user_email_address_err) && empty($user_password_err) && empty($user_confirm_passowrd_err)) {
-		$temp_register_user_sql = 'INSERT INTO temp_account (first_name, last_name, email_address, password) VALUES ("' . $user_first_name . '", "' . $user_last_name . '", "' . $user_email_address . '", "' . password_hash($user_password, PASSWORD_DEFAULT) . '")';
-		
+		$temp_register_user_sql = 'INSERT INTO temp_account (first_name, last_name, email_address, password) VALUES (?, ?, ?, ?)';
+
 		if ($temp_register_stmt = mysqli_prepare($conn, $temp_register_user_sql)) {
 			mysqli_stmt_bind_param($temp_register_stmt, 'ssss', $param_first_name, $param_last_name, $param_email_address, $param_password);
-			
+
 			$param_first_name = $user_first_name;
 			$param_last_name = $user_last_name;
 			$param_email_address = $user_email_address;
-			$param_password = $user_password;
-			
+			$param_password = password_hash($user_password, PASSWORD_DEFAULT);
+
 			if (mysqli_stmt_execute($temp_register_stmt)) {
 				$_SESSION['moov_user_temp_account_id'] = mysqli_insert_id($conn);
 				$_SESSION['moov_user_temp_account_first_name'] = $user_first_name;
 				$_SESSION['moov_user_temp_account_last_name'] = $user_last_name;
-				
+
 				unset($_POST);
-				header('location: register-driving-license');
-				
+				header('location: /moov/register-driving-license');
+
 			} else {
 				$register_error = TRUE;
-				
+
 			}
 		}
 	}
@@ -230,10 +248,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 					</div>
 				</div>
 
-				<button type="submit" class="btn btn-secondary btn-block mt-5">Continue to Register</button>
+				<button type="submit" class="btn btn-secondary btn-block mt-5">Continue Registration</button>
 			</form>
 			
-			<p class="mb-0 mt-4 text-center">Already have an account? <a href="login">Login now.</a></p>
+			<p class="mb-0 mt-4 text-center">Already have an account? <a href="/moov/login">Login now.</a></p>
 		</div>
 	</div>
 	

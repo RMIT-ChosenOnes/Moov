@@ -21,9 +21,44 @@
 				<a class="nav-link" href="support">Support</a>
 			</li>
 			
-			<li class="nav-item <?php echo isset($page_name) && $page_name == 'login' ? 'active' : ''; ?>">
-				<a class="nav-link" href="login">Login</a>
+			<li class="nav-item d-block d-lg-none <?php echo isset($page_name) && $page_name == 'login' ? 'active' : ''; ?>">
+				<a class="nav-link" href="/moov/login">Login</a>
 			</li>
+			
+			<li class="nav-item d-block d-lg-none <?php echo isset($page_name) && $page_name == 'register' ? 'active' : ''; ?>">
+				<a class="nav-link" href="/moov/register">Register</a>
+			</li>
+		</ul>
+	</div>
+	
+	<div class="d-none d-lg-block">
+		<ul class="navbar-nav float-right mr-lg-4">
+			<?php
+			if (isset($_SESSION['moov_user_logged_in']) && $_SESSION['moov_user_logged_in'] == TRUE) {
+				echo '
+				<li class="nav-item dropdown">
+					<a class="nav-link dropdown-toggle" href="/moov/logout" id="userDropDownMenu" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Welcome back, ' . $_SESSION['moov_user_first_name'] . '</a>
+
+					<div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropDownMenu">
+						<a class="dropdown-item" href="/moov/modify-account">Modify My Account</a>
+						<a class="dropdown-item" href="/moov/logout">Logout</a>
+					</div>
+				</li>
+				';
+				
+			} else {
+				echo '
+				<li class="nav-item ' . (isset($page_name) && $page_name == 'login' ? 'active' : '') . '">
+					<a class="nav-link" href="/moov/login">Login</a>
+				</li>
+				
+				<li class="nav-item ' . (isset($page_name) && $page_name == 'register' ? 'active' : '') . '">
+					<a class="nav-link" href="/moov/register">Register</a>
+				</li>
+				';
+				
+			}
+			?>
 		</ul>
 	</div>
 </nav>

@@ -43,11 +43,11 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 						mysqli_stmt_bind_result($login_stmt, $staff_first_name, $staff_email, $staff_saved_password, $staff_role, $staff_account_status);
 						
 						if (mysqli_stmt_fetch($login_stmt)) {
-							if ($staff_account_status == 1) {
-								$login_err = 'Your account is disactivated. If you think this is an error, please contact the administrator.';
-								
-							} elseif ($staff_account_status == 0) {
-								if (password_verify($login_password, $staff_saved_password)) {
+							if (password_verify($login_password, $staff_saved_password)) {
+								if ($staff_account_status == 1) {
+									$login_err = 'Your account is disactivated. If you think this is an error, please contact the administrator.';
+
+								} elseif ($staff_account_status == 0) {
 									if (isset($_POST['portalRemember']) && $_POST['portalRemember'] == 'on') {
 										setcookie('moov_portal_username', $login_username, time() + (86400 * 30), '/moov/portal/');
 										
@@ -151,7 +151,7 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 					<div class="col-auto p-0">
 						<label class="sr-only" for="portalUsername">Username</label>
 
-						<div class="input-group" mb-2>
+						<div class="input-group">
 							<div class="input-group-prepend">
 								<div class="input-group-text">
 									<img src="assets/images/login_username_icon.svg" class="mx-auto">
@@ -179,7 +179,7 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 					<div class="col-auto mt-3 p-0">
 						<label class="sr-only" for="portalPassword">Password</label>
 
-						<div class="input-group" mb-2>
+						<div class="input-group">
 							<div class="input-group-prepend">
 								<div class="input-group-text">
 									<img src="assets/images/login_password_icon.svg" class="mx-auto">
@@ -212,6 +212,8 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 					
 					<button type="submit" class="btn btn-primary btn-block btn-lg mt-4">Login</button>
 				</form>
+				
+				<p class="mb-0 mt-4 text-center"><a href="/moov/portal/forgot-password">Forgot password?</a></p>
 			</div>
 			
 			<div class="py-2 text-logo">

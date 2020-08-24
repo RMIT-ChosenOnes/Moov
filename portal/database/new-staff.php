@@ -88,7 +88,7 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 			}
 
 			if (empty($staff_role_err) && empty($staff_first_name_err) && empty($staff_last_name_err) && empty($staff_username_err) && empty($staff_email_address_err) && empty($staff_password_err) && empty($staff_confirm_password_err)) {
-				$register_staff_sql = 'INSERT INTO portal_account (first_name, last_name, username, email_address, password, role) VALUES ("' . $staff_first_name . '", "' . $staff_last_name . '", "' . $staff_username . '", "' . $staff_email_address . '", "' . password_hash($staff_password, PASSWORD_DEFAULT) . '", ' . $staff_role .')';
+				$register_staff_sql = 'INSERT INTO portal_account (first_name, last_name, username, email_address, password, role) VALUES (?, ?, ?, ?, ?, ?)';
 
 				if ($register_stmt = mysqli_prepare($conn, $register_staff_sql)) {
 					mysqli_stmt_bind_param($register_stmt, 'sssssi', $param_first_name, $param_last_name, $param_username, $param_email_address, $param_password, $param_role);
@@ -97,12 +97,11 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 					$param_last_name = $staff_last_name;
 					$param_username = $staff_username;
 					$param_email_address = $staff_email_address;
-					$param_password = $staff_password;
+					$param_password = password_hash($staff_password, PASSWORD_DEFAULT);
 					$param_role = $staff_role;
 
 					if (mysqli_stmt_execute($register_stmt)) {
 						if (isset($_POST['staffNotify']) && $_POST['staffNotify'] == 'on') {
-							$mail_sender = 'Moov Portal Admin';
 							$mail_email = $staff_email_address;
 							$mail_name = $staff_first_name;
 							$mail_subject = 'Your Account Access to Moov Portal';

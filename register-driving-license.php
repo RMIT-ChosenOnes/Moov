@@ -1,31 +1,194 @@
 <?php
 session_start();
 require_once 'config.php';
+$page_name = 'register';
 
-echo $_SESSION['moov_user_temp_account_id'];
+$referrer_temp_account_id = $dl_first_name = $dl_last_name = $dl_license_number = $dl_date_of_birth = $dl_date_of_expiry = $dl_country_of_issue = '';
+$dl_first_name_err = $dl_last_name_err = $dl_license_number_err = $dl_date_of_birth_err = $dl_date_of_expiry_err = $dl_country_of_issue_err = '';
 
-// SIGNUP FORM
-// Receive input from client side
-$fName = $_POST['fName'];
-$lName = $_POST['lName'];
-$licenseNumber = $_POST['licenseNumber'];
-$dateOfBirth = $_POST['dateOfBirth'];
-$dateOfExpiry = $_POST['dateOfExpiry'];
-$countryOfIssue = $_POST['countryOfIssue'];
+$today_date = date('Y-m-d');
+$accepted_date_of_expiry = date('Y-m-d', strtotime($today_date . '+7 days'));
+$search_date_symbol = array('/', '.');
+$replace_date_symbol = array('-', '-');
 
-// Prepare error message triggers
-$form_input_error = false;
+if (isset($_SESSION['moov_user_logged_in']) && $_SESSION['moov_user_logged_in'] == TRUE) {
+	header('location: /moov/');
+	
+}
 
-// Verify email uniqueness
-if ($_POST['submit']) {
-    // Validate form inputs are not empty
-    if ($fName == NULL || $lName == NULL || $licenseNumber == NULL || $dateOfBirth == NULL || $dateOfExpiry == NULL || $countryOfIssue == NULL) {
-        $form_input_error = true;
-    } else {
-        $query = "insert into driving_license(account_id, first_name, last_name, license_number, date_of_birth, date_of_expiry, country_of_issue) values(1,'$fName','$lName', '$licenseNumber', '$dateOfBirth', '$dateOfExpiry', '$countryOfIssue')";
-        mysqli_query($conn, $query) or die(mysqli_error($conn));
-        echo '<script>window.location.href="index.php";</script>';
-    }
+if (isset($_SESSION['moov_user_temp_account_id']) && !empty($_SESSION['moov_user_temp_account_id'])) {
+	if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+		$referrer_temp_account_id = $_SESSION['moov_user_temp_account_id'];
+
+		if (empty(trim($_POST['dlFirstName']))) {
+			$dl_first_name_err = 'Please enter your first name.';
+
+		} else {
+			if (preg_match('/^[a-zA-zw\-\s]+$/', trim($_POST['dlFirstName']))) {
+				$dl_first_name = trim($_POST['dlFirstName']);
+
+			} else {
+				$dl_first_name_err = 'Please enter a valid first name.';
+
+			}
+		}
+
+		if (empty(trim($_POST['dlLastName']))) {
+			$dl_last_name_err = 'Please enter your last name.';
+
+		} else {
+			if (preg_match('/^[a-zA-zw\-\s]+$/', trim($_POST['dlLastName']))) {
+				$dl_last_name = trim($_POST['dlLastName']);
+
+			} else {
+				$dl_last_name_err = 'Please enter a valid last name.';
+
+			}
+		}
+
+		if (empty(trim($_POST['dlLicenseNumber']))) {
+			$dl_license_number_err = 'Please enter your driving license number.';
+
+		} else {
+			if (preg_match('/^[0-9A-Z\-\s\/]{5,20}$/', strtoupper(trim($_POST['dlLicenseNumber'])))) {
+				$dl_license_number = trim($_POST['dlLicenseNumber']);
+
+			} else {
+				$dl_license_number_err = 'Please enter a valid driving license number.';
+
+			}
+		}
+
+		if (empty(trim($_POST['dlDateOfBirth']))) {
+			$dl_date_of_birth_err = 'Please enter your date of birth.';
+
+		} else {
+			if (preg_match('/[^0-9\.\-\/]/', trim($_POST['dlDateOfBirth']))) {
+				$dl_date_of_birth_err = 'Please enter a valid date of birth.';
+
+			} else {
+				$temp_date_of_birth = trim($_POST['dlDateOfBirth']);
+
+				$replace_temp_dob = date('Y-m-d', strtotime(str_replace($search_date_symbol, $replace_date_symbol, $temp_date_of_birth)));
+
+				$current_age = floor((strtotime($today_date) - strtotime($replace_temp_dob)) / 31556926);
+
+				if ($current_age >= 17) {
+					$dl_date_of_birth = $replace_temp_dob;
+
+				} else {
+					$dl_date_of_birth_err = 'Oops. You aren\'t old enough to drive in Australia. Please come back and try again when you are 17 years old.';
+
+				}
+			}
+		}
+
+		if (empty(trim($_POST['dlDateOfExpiry']))) {
+			$dl_date_of_expiry_err = 'Please enter the date of expiry on your driving license.';
+
+		} else {
+			if (preg_match('/[^0-9\.\-\/]/', trim($_POST['dlDateOfExpiry']))) {
+				$dl_date_of_expiry_err = 'Please enter a valid date of expiry.';
+
+			} else {
+				$temp_date_of_expiry = trim($_POST['dlDateOfExpiry']);
+
+				$replace_temp_doe = date('Y-m-d', strtotime(str_replace($search_date_symbol, $replace_date_symbol, $temp_date_of_expiry)));
+
+				if ($replace_temp_doe >= $accepted_date_of_expiry) {
+					$dl_date_of_expiry = $replace_temp_doe;
+
+				} else {
+					$dl_date_of_expiry_err = 'Your current driving license is expiring soon or has already expired. Unfortunately, we are not able to continue to register with your current driving license. Please try again with a new driving license.';
+
+				}
+			}
+		}
+
+		if (empty(trim($_POST['dlCountryOfIssue'])) || trim($_POST['dlCountryOfIssue']) == '') {
+			$dl_country_of_issue_err = 'Please select the country issue.';
+
+		} else {
+			$dl_country_of_issue = trim($_POST['dlCountryOfIssue']);
+
+		}
+
+		if (empty($dl_first_name_err) && empty($dl_last_name_err) && empty($dl_license_number_err) && empty($dl_date_of_birth_err) && empty($dl_date_of_expiry_err) && empty($dl_country_of_issue_err)) {
+			$get_temp_account_sql = 'SELECT first_name, last_name, email_address, password FROM temp_account WHERE temp_account_id = ?';
+
+			if ($get_temp_account_stmt = mysqli_prepare($conn, $get_temp_account_sql)) {
+				mysqli_stmt_bind_param($get_temp_account_stmt, 'i', $param_temp_account_id);
+
+				$param_temp_account_id = $referrer_temp_account_id;
+
+				if (mysqli_stmt_execute($get_temp_account_stmt)) {
+					mysqli_stmt_store_result($get_temp_account_stmt);
+
+					if (mysqli_stmt_num_rows($get_temp_account_stmt) == 1) {
+						mysqli_stmt_bind_result($get_temp_account_stmt, $temp_first_name, $temp_last_name, $temp_email_address, $temp_password);
+
+						if (mysqli_stmt_fetch($get_temp_account_stmt)) {
+							$register_account_sql = 'INSERT INTO account (first_name, last_name, email_address, password) VALUES ("' . $temp_first_name . '", "' . $temp_last_name . '", "' . $temp_email_address . '", "' . $temp_password . '")';
+
+							if (mysqli_query($conn, $register_account_sql)) {
+								$account_id = mysqli_insert_id($conn);
+
+								$register_driving_license_sql = 'INSERT INTO driving_license (account_id, first_name, last_name, license_number, date_of_birth, date_of_expiry, country_of_issue) VALUES (?, ?, ?, ?, ?, ?, ?)';
+
+								if ($register_driving_license_stmt = mysqli_prepare($conn, $register_driving_license_sql)) {
+									mysqli_stmt_bind_param($register_driving_license_stmt, 'issssss', $param_account_id, $param_first_name, $param_last_name, $param_license_number, $param_date_of_birth, $param_date_of_expiry, $param_country_of_issue);
+
+									$param_account_id = $account_id;
+									$param_first_name = $dl_first_name;
+									$param_last_name = $dl_last_name;
+									$param_license_number = $dl_license_number;
+									$param_date_of_birth = $dl_date_of_birth;
+									$param_date_of_expiry = $dl_date_of_expiry;
+									$param_country_of_issue = $dl_country_of_issue;
+
+									if (mysqli_stmt_execute($register_driving_license_stmt)) {
+										$delete_temp_record_sql = 'DELETE FROM temp_account WHERE temp_account_id = ' . $referrer_temp_account_id;
+
+										if (mysqli_query($conn, $delete_temp_record_sql)) {
+											unset($_SESSION['moov_user_temp_account_id']);
+											unset($_SESSION['moov_user_temp_account_first_name']);
+											unset($_SESSION['moov_user_temp_account_last_name']);
+											unset($_POST);
+
+											$_SESSION['moov_user_registration_success'] = TRUE;
+											header('location: /moov/login');
+
+										}  else {
+											$register_error = TRUE;
+
+										}
+									} else {
+										$register_error = TRUE;
+
+									}
+								}
+
+								mysqli_stmt_close($register_driving_license_stmt);
+
+							} else {
+								$register_error = TRUE;
+
+							}
+						}
+					} else {
+						$register_error = TRUE;
+
+					}
+				}
+			}
+
+			mysqli_stmt_close($get_temp_account_stmt);
+
+		}
+	}
+} else {
+	header('location: /moov/register');
+	
 }
 ?>
 
@@ -76,6 +239,20 @@ if ($_POST['submit']) {
    	<div class="container my-3">
 		<h1 class="text-center">Driving License</h1>
 		
+		<?php
+		if ($register_error === TRUE) {
+            echo '
+            <div class="alert alert-warning my-4 alert-dismissible fade show" role="alert">
+                Oops! There is an error occurred. Please try again later. If you continue to see this error, please contact us immediately.
+
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            ';
+        }
+        ?>
+		
 		<p class="mt-4">
 			Dear <?php echo $_SESSION['moov_user_temp_account_first_name']; ?>, thank you for registering with Moov. Before we can proceed with your account registration, we were hoping you could prove that you are legal to drive in Australia. You are required to fill in below fields with your driving license.
 		</p>
@@ -83,57 +260,115 @@ if ($_POST['submit']) {
 		<div class="container bg-secondary pt-4 pb-2 rounded">
 			<form action="<?php echo basename(htmlspecialchars($_SERVER['PHP_SELF']), '.php'); ?>" method="post">
 				<div class="form-group row align-items-center">
-					<label for="dlFirstName" class="col-sm-3 col-form-label" style=text-align:left;>First Name</label>
+					<label for="dlFirstName" class="col-sm-3 col-form-label">First Name</label>
 					
 					<div class="col-sm-9">
-						<input type="text" class="form-control" id="dlFirstName" name="dlFirstName" value="<?php echo !empty($_POST['dlFirstName']) ? $_POST['dlFirstName'] : $_SESSION['moov_user_temp_account_first_name']; ?>">
+						<input type="text" class="form-control <?php echo !empty($dl_first_name_err) ? 'border border-danger' : ''; ?>" id="dlFirstName" name="dlFirstName" aria-describedby="firstNameInfo" value="<?php echo !empty($_POST['dlFirstName']) ? $_POST['dlFirstName'] : $_SESSION['moov_user_temp_account_first_name']; ?>">
+						
+						<?php
+						if (isset($dl_first_name_err) && !empty($dl_first_name_err)) {
+							echo '<p class="text-danger mb-0">' . $dl_first_name_err . '</p>';
+
+						} else {
+							echo '<small id="firstNameInfo" class="form-text text-muted">First Name must match on driving license.</small>';
+
+						}
+						?>
 					</div>
 				</div>
 				
 				<div class="form-group row mt-4 align-items-center">
-					<label for="dlLastName" class="col-sm-3 col-form-label" style=text-align:left;>Last Name</label>
+					<label for="dlLastName" class="col-sm-3 col-form-label">Last Name</label>
 					
 					<div class="col-sm-9">
-						<input type="text" class="form-control" id="dlLastName" name="dlLastName" value="<?php echo !empty($_POST['dlLastName']) ? $_POST['dlLastName'] : $_SESSION['moov_user_temp_account_last_name']; ?>">
+						<input type="text" class="form-control <?php echo !empty($dl_last_name_err) ? 'border border-danger' : ''; ?>" id="dlLastName" name="dlLastName" aria-describedby="lastNameInfo" value="<?php echo !empty($_POST['dlLastName']) ? $_POST['dlLastName'] : $_SESSION['moov_user_temp_account_last_name']; ?>">
+						
+						<?php
+						if (isset($dl_last_name_err) && !empty($dl_last_name_err)) {
+							echo '<p class="text-danger mb-0">' . $dl_last_name_err . '</p>';
+
+						} else {
+							echo '<small id="lastNameInfo" class="form-text text-muted">Last Name must match on driving license.</small>';
+
+						}
+						?>
 					</div>
 				</div>
 				
 				<div class="form-group row mt-4 align-items-center">
-					<label for="dlLicenseNumber" class="col-sm-3 col-form-label" style=text-align:left;>License Number</label>
+					<label for="dlLicenseNumber" class="col-sm-3 col-form-label">License Number</label>
 					
 					<div class="col-sm-9">
-						<input type="text" class="form-control" id="dlLicenseNumber" name="dlLicenseNumber" value="<?php echo $_POST['dlLicenseNumber']; ?>">
+						<input type="text" class="form-control <?php echo !empty($dl_license_number_err) ? 'border border-danger' : ''; ?>" id="dlLicenseNumber" name="dlLicenseNumber" value="<?php echo $_POST['dlLicenseNumber']; ?>">
+						
+						<?php
+						if (isset($dl_license_number_err) && !empty($dl_license_number_err)) {
+							echo '<p class="text-danger mb-0">' . $dl_license_number_err . '</p>';
+
+						}
+						?>
 					</div>
 				</div>
 				
 				<div class="form-group row mt-4 align-items-center">
-					<label for="dlDateOfBirth" class="col-sm-3 col-form-label" style=text-align:left;>Date of Birth</label>
+					<label for="dlDateOfBirth" class="col-sm-3 col-form-label">Date of Birth</label>
 					
 					<div class="col-sm-9">
-						<input type="date" class="form-control" id="dlDateOfBirth" name="dlDateOfBirth" value="<?php echo $_POST['dlDateOfBirth']; ?>">
+						<input type="date" class="form-control <?php echo !empty($dl_date_of_birth_err) ? 'border border-danger' : ''; ?>" id="dlDateOfBirth" name="dlDateOfBirth" placeholder="dd / mm / yyyy" value="<?php echo $_POST['dlDateOfBirth']; ?>">
+						
+						<?php
+						if (isset($dl_date_of_birth_err) && !empty($dl_date_of_birth_err)) {
+							echo '<p class="text-danger mb-0">' . $dl_date_of_birth_err . '</p>';
+
+						}
+						?>
 					</div>
 				</div>
 				
 				<div class="form-group row mt-4 align-items-center">
-					<label for="dlDateOfExpiry" class="col-sm-3 col-form-label" style=text-align:left;>Date of Expiry</label>
+					<label for="dlDateOfExpiry" class="col-sm-3 col-form-label">Date of Expiry</label>
 					
 					<div class="col-sm-9">
-						<input type="date" class="form-control" id="dlDateOfExpiry" name="dlDateOfExpiry" value="<?php echo $_POST['dlDateOfExpiry']; ?>">
+						<input type="date" class="form-control <?php echo !empty($dl_date_of_expiry_err) ? 'border border-danger' : ''; ?>" id="dlDateOfExpiry" placeholder="dd / mm / yyyy" name="dlDateOfExpiry" min="<?php echo date('Y-m-d', strtotime(date('Y-m-d') . '+7 days')); ?>" value="<?php echo $_POST['dlDateOfExpiry']; ?>">
+						
+						<?php
+						if (isset($dl_date_of_expiry_err) && !empty($dl_date_of_expiry_err)) {
+							echo '<p class="text-danger mb-0">' . $dl_date_of_expiry_err . '</p>';
+
+						}
+						?>
 					</div>
 				</div>
 				
 				<div class="form-group row mt-4 align-items-center">
-					<label for="dlCountryOfIssuer" class="col-sm-3 col-form-label" style=text-align:left;>Country of Issuer</label>
+					<label for="dlCountryOfIssue" class="col-sm-3 col-form-label">Country of Issue</label>
 					
 					<div class="col-sm-9"  class="form-control">
-						<select name="dlCountryOfIssuer"  class="form-control">
+						<select id="dlCountryOfIssue" class="form-control <?php echo !empty($dl_country_of_issue_err) ? 'border border-danger' : ''; ?>" name="dlCountryOfIssue">
+							<option value="" selected>Select Country of Issue</option>
+						
 							<?php
-							$sql = mysqli_query($conn, "SELECT country FROM country");
-							while ($row = $sql->fetch_assoc()) {
-								echo "<option value=\"country\">" . $row['country'] . "</option>";
+							$get_country_list_sql = 'SELECT * FROM country ORDER BY country ASC';
+							$get_country_list = mysqli_query($conn, $get_country_list_sql);
+
+							if (mysqli_num_rows($get_country_list) > 0) {
+								while ($country_list = mysqli_fetch_assoc($get_country_list)) {
+									$selected_country = (isset($_POST['dlCountryOfIssue']) && $_POST['dlCountryOfIssue'] == $country_list['country_id']) ? ' selected="selected"' : '';
+
+									echo '<option value="' . $country_list['country_id'] . '"' . $selected_country . '>' . $country_list['country'] . '</option>';
+								}
+
+								mysqli_free_result($get_country_list);
 							}
 							?>
 						</select>
+
+						<?php
+						if (isset($dl_country_of_issue_err) && !empty($dl_country_of_issue_err)) {
+							echo '<p class="text-danger mb-0">' . $dl_country_of_issue_err . '</p>';
+
+						}
+						?>
 					</div>
 				</div>
 
