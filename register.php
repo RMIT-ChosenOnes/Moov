@@ -3,11 +3,11 @@ session_start();
 require_once 'config.php';
 $page_name = 'register';
 
-$user_first_name = $user_last_name = $user_email_address = $user_password = '';
-$user_first_name_err = $user_last_name_err = $user_email_address_err = $user_password_err = $user_confirm_password_err = '';
+$user_display_name = $user_email_address = $user_password = '';
+$user_display_name_err = $user_email_address_err = $user_password_err = $user_confirm_password_err = '';
 
 if (isset($_SESSION['moov_user_temp_account_id']) && !empty($_SESSION['moov_user_temp_account_id'])) {
-	header('location: /moov/register-driving-license');
+	header('location: /moov/register-driver-profile');
 	
 } elseif (isset($_SESSION['moov_user_logged_in']) && $_SESSION['moov_user_logged_in'] == TRUE) {
 	header('location: /moov/');
@@ -15,28 +15,15 @@ if (isset($_SESSION['moov_user_temp_account_id']) && !empty($_SESSION['moov_user
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-	if (empty(trim($_POST['userFirstName']))) {
-		$user_first_name_err = 'Please enter your first name.';
+	if (empty(trim($_POST['userDisplayName']))) {
+		$user_display_name_err = 'Please enter your display name.';
 
 	} else {
-		if (preg_match('/^[a-zA-zw\-\s]+$/', trim($_POST['userFirstName']))) {
-			$user_first_name = trim($_POST['userFirstName']);
+		if (preg_match('/^[a-zA-zw\-\s]{3,100}$/', trim($_POST['userDisplayName']))) {
+			$user_display_name = trim($_POST['userDisplayName']);
 
 		} else {
-			$user_first_name_err = 'Please enter a valid first name.';
-
-		}
-	}
-
-	if (empty(trim($_POST['userLastName']))) {
-		$user_last_name_err = 'Please enter your last name.';
-
-	} else {
-		if (preg_match('/^[a-zA-zw\-\s]+$/', trim($_POST['userLastName']))) {
-			$user_last_name = trim($_POST['userLastName']);
-
-		} else {
-			$user_last_name_err = 'Please enter a valid last name.';
+			$user_display_name_err = 'Please enter a valid display name.';
 
 		}
 	}
@@ -45,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 		$user_email_address_err = 'Please enter your email address.';
 
 	} else {
-		$check_email_address_duplication_sql = 'SELECT account_id FROM account WHERE email_address = "' . trim($_POST['userEmailAddress']) . '"';
+		$check_email_address_duplication_sql = 'SELECT account_id FROM account WHERE email_address = "' . trim($_POST['userEmailAddress']) . '" AND is_deleted = 0';
 		$check_email_address_duplication = mysqli_query($conn, $check_email_address_duplication_sql);
 
 		if (mysqli_num_rows($check_email_address_duplication) > 0) {
@@ -61,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 		$user_password_err = 'Please enter a valid password.';
 
 	} elseif (!preg_match('/[a-z]+/', trim($_POST['userPassword'])) || !preg_match('/[A-Z]+/', trim($_POST['userPassword'])) || !preg_match('/[^a-zA-Z0-9]+/', trim($_POST['userPassword'])) || strlen(trim($_POST['userPassword'])) < 8) {
-		$user_password_err = 'Your password must contain at least one uppercase letter, one lowercase letter, one number digit, one special character, and have at least 8 characters long.';
+		$user_password_err = 'Your password must contain at least 1 uppercase letter, 1 lowercase letter, 1 number digit, 1 special character, and have at least 8 characters long.';
 
 	}
 
@@ -79,24 +66,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 	}
 
-	if (empty($user_first_name_err) && empty($user_last_name_err) && empty($user_email_address_err) && empty($user_password_err) && empty($user_confirm_passowrd_err)) {
-		$temp_register_user_sql = 'INSERT INTO temp_account (first_name, last_name, email_address, password) VALUES (?, ?, ?, ?)';
+	if (empty($user_display_name_err) && empty($user_email_address_err) && empty($user_password_err) && empty($user_confirm_passowrd_err)) {
+		$temp_register_user_sql = 'INSERT INTO account_temp (display_name, email_address, password) VALUES (?, ?, ?)';
 
 		if ($temp_register_stmt = mysqli_prepare($conn, $temp_register_user_sql)) {
-			mysqli_stmt_bind_param($temp_register_stmt, 'ssss', $param_first_name, $param_last_name, $param_email_address, $param_password);
+			mysqli_stmt_bind_param($temp_register_stmt, 'sss', $param_display_name, $param_email_address, $param_password);
 
-			$param_first_name = $user_first_name;
-			$param_last_name = $user_last_name;
+			$param_display_name = $user_display_name;
 			$param_email_address = $user_email_address;
 			$param_password = password_hash($user_password, PASSWORD_DEFAULT);
 
 			if (mysqli_stmt_execute($temp_register_stmt)) {
 				$_SESSION['moov_user_temp_account_id'] = mysqli_insert_id($conn);
-				$_SESSION['moov_user_temp_account_first_name'] = $user_first_name;
-				$_SESSION['moov_user_temp_account_last_name'] = $user_last_name;
+				$_SESSION['moov_user_temp_account_display_name'] = $user_display_name;
 
 				unset($_POST);
-				header('location: /moov/register-driving-license');
+				header('location: /moov/register-driver-profile');
 
 			} else {
 				$register_error = TRUE;
@@ -171,29 +156,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 		<div class="container bg-secondary pt-4 pb-2 rounded">
 			<form action="<?php echo basename(htmlspecialchars($_SERVER['PHP_SELF']), '.php'); ?>" method="post">
 				<div class="form-group row align-items-center">
-					<label for="userFirstName" class="col-sm-3 col-form-label">First Name</label>
+					<label for="userDisplayName" class="col-sm-3 col-form-label">Display Name</label>
 					
 					<div class="col-sm-9">
-						<input type="text" class="form-control <?php echo !empty($user_first_name_err) ? 'border border-danger' : ''; ?>" id="userFirstName" name="userFirstName" value="<?php echo $_POST['userFirstName']; ?>">
+						<input type="text" class="form-control <?php echo !empty($user_display_name_err) ? 'border border-danger' : ''; ?>" id="userDisplayName" name="userDisplayName" placeholder="i.e. your first name" value="<?php echo $_POST['userDisplayName']; ?>">
 						
 						<?php
-						if (isset($user_first_name_err) && !empty($user_first_name_err)) {
-							echo '<p class="text-danger mb-0 text-left">' . $user_first_name_err . '</p>';
-
-						}
-						?>
-					</div>
-				</div>
-				
-				<div class="form-group row mt-4 align-items-center">
-					<label for="userLastName" class="col-sm-3 col-form-label">Last Name</label>
-					
-					<div class="col-sm-9">
-						<input type="text" class="form-control <?php echo !empty($user_last_name_err) ? 'border border-danger' : ''; ?>" id="userLastName" name="userLastName" value="<?php echo $_POST['userLastName']; ?>">
-						
-						<?php
-						if (isset($user_last_name_err) && !empty($user_last_name_err)) {
-							echo '<p class="text-danger mb-0 text-left">' . $user_last_name_err . '</p>';
+						if (isset($user_display_name_err) && !empty($user_display_name_err)) {
+							echo '<p class="text-danger mb-0 text-left">' . $user_display_name_err . '</p>';
 
 						}
 						?>
@@ -226,7 +196,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 							echo '<p class="text-danger mb-0">' . $user_password_err . '</p>';
 
 						} else {
-							echo '<small id="passwordInfo" class="form-text text-muted">Password must contain at least one uppercase letter, one lowercase letter, one number digit, one special character, and have at least 8 characters long.</small>';
+							echo '<small id="passwordInfo" class="form-text text-muted">Minimum 8 characters, must contain at least 1 uppercase letter, 1 lowercase letter, 1 number digit, and 1 special character.</small>';
 
 						}
 						?>

@@ -206,7 +206,7 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
         }
         ?>
 		
-		<form class="mt-5" action="<?php echo basename(htmlspecialchars($_SERVER['PHP_SELF']), '.php'); ?>" method="post">
+		<form class="mt-5" action="<?php echo basename(htmlspecialchars($_SERVER['PHP_SELF']), '.php'); ?>" method="post" onSubmit="submitButton()">
 			<div class="form-group row">
 				<label for="staffRole" class="col-sm-2 col-form-label">Role</label>
 				
@@ -335,8 +335,28 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 				<label class="form-check-label" for="staffNotify">Notify staff via email</label>
 			</div>
 			
-			<button type="submit" class="btn btn-primary btn-block mt-5">Register</button>
+			<button id="staffSubmitButton" type="submit" class="btn btn-primary btn-block mt-5">Register</button>
 		</form>
+		
+		<script>
+			function submitButton() {
+				document.getElementById('staffSubmitButton').disabled = true;
+				document.getElementById('staffSubmitButton').innerHTML = '<span class="spinner-grow spinner-grow-sm" role="status" aria-hidden="true"></span> Processing...';
+
+			}
+
+			/*var processingConfirmation = document.getElementById('portalForgotUsername');
+
+			processingConfirmation.addEventListener('keyup', function(event) {
+				if (event.keyCode == 13) {
+					event.preventDefault;
+
+					document.getElementById('staffSubmitButton').disabled = true;
+					document.getElementById('staffSubmitButton').innerHTML = '<span class="spinner-grow spinner-grow-sm" role="status" aria-hidden="true"></span> Processing...';
+
+				}
+			})*/
+		</script>
 	</div>
 
     <?php include '../footer.php'; ?>

@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 		
 	} else {
 		$reset_email_address = trim($_POST['forgotEmailAddress']);
-		$verify_account_sql = 'SELECT first_name, is_deactivated FROM account WHERE email_address = ?';
+		$verify_account_sql = 'SELECT display_name, is_deleted, is_deactivated FROM account WHERE email_address = ?';
 		
 		if ($verify_account_stmt = mysqli_prepare($conn, $verify_account_sql)) {
 			mysqli_stmt_bind_param($verify_account_stmt, 's', $param_email_address);
@@ -27,13 +27,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 				mysqli_stmt_store_result($verify_account_stmt);
 				
 				if (mysqli_stmt_num_rows($verify_account_stmt) == 1) {
-					mysqli_stmt_bind_result($verify_account_stmt, $reset_first_name, $reset_account_status);
+					mysqli_stmt_bind_result($verify_account_stmt, $reset_display_name, $reset_deleted_account, $reset_account_status);
 					mysqli_stmt_fetch($verify_account_stmt);
 					
 					if ($reset_account_status == 1) {
 						$reset_err = 'Your account is suspended. Therefore, we can\'t proceed your request. If you think this is an error, please contact us immediately.';
 						
-					} elseif ($reset_account_status == 0) {
+					}
+					
+					if ($reset_deleted_account == 1) {
+						$reset_err = 'Your account is deleted. Therefore, we can\'t proceed your request. If you think this is an error, please contact us immediately.';
+						
+					}
+					
+					if ($reset_account_status == 0 && $reset_deleted_account == 0) {
 						$reset_action = TRUE;
 						
 					}
@@ -80,11 +87,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             mysqli_stmt_execute($register_new_reset_stmt);
            	
 			$mail_email = $reset_email_address;
-			$mail_name = $reset_first_name;
-			$mail_subject = 'Reset Your Moov Account Password';
-			$mail_body = 'Dear ' . $reset_first_name . ',<br/><br/>You are receiving this email because we received a password reset request for your account.<br/><br/><a href="' . $reset_url . '">Click Here to Reset Passowrd</a><br/><br/>This password reset link will expire in 15 minutes.<br/><br/>If you did not request a password reset, no further action is required.<br/><br/>Kind Regards,<br/>Moov Admin<br/><br/><hr/>If you\'re having trouble clicking the Reset Password button, copy and paste the URL below into your web browser: <a href="' . $reset_url . '">' . $reset_url . '</a>';
+			$mail_name = $reset_display_name;
+			$mail_subject = '[Moov] Reset Your Moov Account Password';
+			$mail_body = '<h1>Dear ' . $reset_display_name . ',</h1><p class="my-4 text-left">You are receiving this email because we received a password reset request for your account.</p><a class="btn btn-primary btn-block my-4" role="button" href="' . $reset_url . '">Click Here to Reset Password</a><p class="my-4 text-left">This password reset link will expire in 15 minutes.</p><p class="my-4 text-left">If you did not request a password reset, no further action is required.</p><p class="my-4 text-left">Kind Regards,<br/>Moov Admin</p><hr class="mt-5"><small class="text-left">If you\'re having trouble clicking the Reset Password button, copy and paste the URL below into your web browser: <a href="' . $reset_url . '">' . $reset_url . '</a></small>';
 
-			require_once 'mail.php';
+			require_once 'mail/mail-customer.php';
 			
 			$reset_confirmation = TRUE;
             unset($_POST);
@@ -178,12 +185,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 		<p class="mt-4">Enter your email address and we will send you instructions to reset your password.</p>
 		
 		<div class="container bg-secondary pt-4 pb-2 rounded">
-			<form action="<?php echo basename(htmlspecialchars($_SERVER['PHP_SELF']), '.php'); ?>" method="post">
+			<form action="<?php echo basename(htmlspecialchars($_SERVER['PHP_SELF']), '.php'); ?>" method="post" onSubmit="submitButton()">
 				<div class="form-group row align-items-center">
 					<label for="forgotEmailAddress" class="col-sm-3 col-form-label">Email Address</label>
 					
 					<div class="col-sm-9">
-						<input type="email" class="form-control <?php echo (!empty($reset_email_address_err) || !empty($reset_err)) ? 'border border-danger' : ''; ?>" id="forgotEmailAddress" name="forgotEmailAddress" value="<?php echo $_POST['forgotEmailAddress']; ?>">
+						<input type="email" class="form-control <?php echo (!empty($reset_email_address_err) || !empty($reset_err)) ? 'border border-danger' : ''; ?>" id="forgotEmailAddress" name="forgotEmailAddress" value="<?php echo $_POST['forgotEmailAddress']; ?>" onKeyUp="changeEventButton(this)">
 						
 						<?php
 						if (isset($reset_email_address_err) && !empty($reset_email_address_err)) {
@@ -201,11 +208,40 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 				}
 				?>
 
-				<button type="submit" class="btn btn-secondary btn-block mt-5">Reset My Password</button>
+				<button id="resetSubmitButton" type="submit" class="btn btn-secondary btn-block mt-5">
+					<span id="submitButton">Reset My Password</span>
+					
+					<img id="processingIcon" src="/moov/assets/images/processing_icon.svg" class="processing-icon d-none">
+					<span id="processingButton" class="d-none">Processing...</span>
+				</button>
 			</form>
 			
 			<p class="mb-0 text-center">Already have an account? <a href="/moov/login">Login now.</a></p>
 			<p class="mb-0 text-center">Don't have an account? <a href="/moov/register">Register now.</a></p>
+			
+			<script>
+				function submitButton() {
+					document.getElementById('resetSubmitButton').disabled = true;
+					document.getElementById('submitButton').classList.add('d-none');
+					document.getElementById('processingIcon').classList.add('d-inline-block');
+					document.getElementById('processingIcon').classList.remove('d-none');
+					document.getElementById('processingButton').classList.remove('d-none');
+
+				}
+
+				function changeEventButton(event) {
+					if (event.keyCode == 13) {
+						event.preventDefault;
+
+						document.getElementById('resetSubmitButton').disabled = true;
+						document.getElementById('submitButton').classList.add('d-none');
+						document.getElementById('processingIcon').classList.add('d-inline-block');
+						document.getElementById('processingIcon').classList.remove('d-none');
+						document.getElementById('processingButton').classList.remove('d-none');
+
+					}
+				}
+			</script>
 		</div>
     </div>
 	

@@ -72,6 +72,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 										mysqli_stmt_bind_param($delete_reset_token_stmt, 's', $param_selector);
 										mysqli_stmt_execute($delete_reset_token_stmt);
 										
+										$mail_email = $saved_email_address;
+										$mail_name = $saved_email_address;
+										$mail_subject = '[Moov] Your Moov Account Information Has Been Updated';
+										$mail_body = '<h1>Hi there!</h1><p class="my-4 text-left">The following changes to your Moov account, ' . $saved_email_address . ', were made on ' . date('Y-m-d, H:i:s') . ':</p><p class="my-4"><b>Account Password</b></p><p class="my-4 text-left">If you did not make these changes, or if you believe an unauthorised person has accessed your account, you should change your password as soon as possible at <a href="http://kftech.ddns.net/moov/login">Moov Account page</a>.</p><p class="my-4 text-left">Kind Regards,<br/>Moov Admin</p>';
+
+										require_once 'mail/mail-customer.php';
+										
 										$_SESSION['moov_user_reset_password_success'] = TRUE;
 										unset($_POST);
 										
@@ -173,7 +180,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         ?>
 		
 		<div class="container bg-secondary pt-4 pb-2 rounded">
-			<form action="<?php echo basename(htmlspecialchars($_SERVER['PHP_SELF']), '.php'); ?>" method="post">
+			<form action="<?php echo basename(htmlspecialchars($_SERVER['PHP_SELF']), '.php'); ?>" method="post" onSubmit="submitButton()">
 				<input type="hidden" id="resetSelector" name="resetSelector" value="<?php echo !empty($_POST['resetSelector']) ? $_POST['resetSelector'] : $_GET['selector']; ?>">
 				<input type="hidden" id="resetValidator" name="resetValidator" value="<?php echo !empty($_POST['resetValidator']) ? $_POST['resetValidator'] : $_GET['validator']; ?>">
 				
@@ -189,7 +196,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 					<label for="resetPassword" class="col-sm-3 col-form-label">New Password</label>
 					
 					<div class="col-sm-9">
-						<input type="password" class="form-control <?php echo (!empty($reset_password_err) || !empty($reset_err)) ? 'border border-danger' : ''; ?>" id="resetPassword" name="resetPassword" aria-describedby="passwordInfo" value="<?php echo $_POST['resetPassword']; ?>">
+						<input type="password" class="form-control <?php echo (!empty($reset_password_err) || !empty($reset_err)) ? 'border border-danger' : ''; ?>" id="resetPassword" name="resetPassword" aria-describedby="passwordInfo" value="<?php echo $_POST['resetPassword']; ?>" onKeyUp="changeEventButton(this)">
 						
 						<?php
 						if (isset($reset_password_err) && !empty($reset_password_err)) {
@@ -207,7 +214,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 					<label for="resetConfirmPassword" class="col-sm-3 col-form-label">Confirm New Password</label>
 					
 					<div class="col-sm-9">
-						<input type="password" class="form-control <?php echo (!empty($reset_confirm_password_err) || !empty($reset_err)) ? 'border border-danger' : ''; ?>" id="resetConfirmPassword" name="resetConfirmPassword" value="<?php echo $_POST['resetConfirmPassword']; ?>">
+						<input type="password" class="form-control <?php echo (!empty($reset_confirm_password_err) || !empty($reset_err)) ? 'border border-danger' : ''; ?>" id="resetConfirmPassword" name="resetConfirmPassword" value="<?php echo $_POST['resetConfirmPassword']; ?>" onKeyUp="changeEventButton(this)">
 						
 						<?php
 						if (isset($reset_confirm_password_err) && !empty($reset_confirm_password_err)) {
@@ -225,8 +232,37 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 				}
 				?>
 
-				<button type="submit" class="btn btn-secondary btn-block mt-5">Reset My Password</button>
+				<button id="resetSubmitButton" type="submit" class="btn btn-secondary btn-block mt-5">
+					<span id="submitButton">Reset My Password</span>
+					
+					<img id="processingIcon" src="/moov/assets/images/processing_icon.svg" class="processing-icon d-none">
+					<span id="processingButton" class="d-none">Processing...</span>
+				</button>
 			</form>
+			
+			<script>
+				function submitButton() {
+					document.getElementById('resetSubmitButton').disabled = true;
+					document.getElementById('submitButton').classList.add('d-none');
+					document.getElementById('processingIcon').classList.add('d-inline-block');
+					document.getElementById('processingIcon').classList.remove('d-none');
+					document.getElementById('processingButton').classList.remove('d-none');
+
+				}
+
+				function changeEventButton(event) {
+					if (event.keyCode == 13) {
+						event.preventDefault;
+
+						document.getElementById('resetSubmitButton').disabled = true;
+						document.getElementById('submitButton').classList.add('d-none');
+						document.getElementById('processingIcon').classList.add('d-inline-block');
+						document.getElementById('processingIcon').classList.remove('d-none');
+						document.getElementById('processingButton').classList.remove('d-none');
+
+					}
+				}
+			</script>
 		</div>
     </div>
 	

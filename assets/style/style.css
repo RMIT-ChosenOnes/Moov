@@ -6,3 +6,30 @@
   background-color: #05386b;
   border-color: #05386b;
 }
+
+/* START proccessing icon */
+.processing-icon {
+	display: inline-block;
+	width: 1.5rem;
+	height: 1.5rem;
+	vertical-align: text-bottom;
+	background-color: #edf5e1;
+	border-radius: 50%;
+	-webkit-animation: car-wheel-turning 1.1s linear infinite;
+	animation: car-wheel-turning 1.1s linear infinite;
+}
+
+@-webkit-keyframes car-wheel-turning {
+	to {
+		-webkit-transform: rotate(360deg);
+		transform: rotate(360deg);
+	}
+}
+
+@keyframes car-wheel-turning {
+	to {
+		-webkit-transform: rotate(360deg);
+		transform: rotate(360deg);
+	}
+}
+/* END processing icon */

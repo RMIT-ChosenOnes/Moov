@@ -347,6 +347,7 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 		<script>
 			document.getElementById('modifyAccount').onload = function hideAccountInfo() {
 				document.getElementById('accountInformation').style.display = 'none';
+				
 			}
 			
 			function getAccountInfo(id) {

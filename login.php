@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 	}
 	
 	if (empty($login_email_address_err) && empty($login_password_err)) {
-		$user_login_sql = 'SELECT account_id, first_name, password, is_deactivated FROM account WHERE email_address = ?';
+		$user_login_sql = 'SELECT account_id, display_name, password, is_deleted, is_deactivated FROM account WHERE email_address = ?';
 		
 		if ($user_login_stmt = mysqli_prepare($conn, $user_login_sql)) {
 			mysqli_stmt_bind_param($user_login_stmt, 's', $param_email_address);
@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 				mysqli_stmt_store_result($user_login_stmt);
 				
 				if (mysqli_stmt_num_rows($user_login_stmt) == 1) {
-					mysqli_stmt_bind_result($user_login_stmt, $user_account_id, $user_first_name, $user_password, $user_account_status);
+					mysqli_stmt_bind_result($user_login_stmt, $user_account_id, $user_display_name, $user_password, $user_deleted_account, $user_account_status);
 					
 					if (mysqli_stmt_fetch($user_login_stmt)) {
 						if (password_verify($login_password, $user_password)) {
@@ -48,19 +48,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 								$login_err = 'Your account is suspended. If you think this is an error, please contact us immediately.';
 
 							} elseif ($user_account_status == 0) {
-								if (isset($_POST['usernameRemember']) && $_POST['usernameRemember'] == 'on') {
-									setcookie('moov_user_email_address', $login_email_address, time() + (86400 * 30), '/moov/');
+								if ($user_deleted_account == 1) {
+									$login_err = 'Your account is deleted. If you think this is an error, please contact us immediately.';
+
+								} elseif ($user_deleted_account == 0) {
+									if (isset($_POST['usernameRemember']) && $_POST['usernameRemember'] == 'on') {
+										setcookie('moov_user_email_address', $login_email_address, time() + (86400 * 30), '/moov/');
+
+									}
+
+									session_start();
+
+									$_SESSION['moov_user_logged_in'] = TRUE;
+									$_SESSION['moov_user_account_id'] = $user_account_id;
+									$_SESSION['moov_user_display_name'] = $user_display_name;
+
+									header('location: /moov/');
+									unset($_POST);
 									
 								}
-
-								session_start();
-								
-								$_SESSION['moov_user_logged_in'] = TRUE;
-								$_SESSION['moov_user_account_id'] = $user_account_id;
-								$_SESSION['moov_user_first_name'] = $user_first_name;
-								
-								header('location: /moov/');
-								unset($_POST);
 							}
 						} else {
 							$login_password_err = 'Password does not match with the associated account. Please try again.';
@@ -124,7 +130,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 </head>
 
 <body>
-
     <?php include 'header.php'; ?>
 
     <div class="container my-3">
@@ -173,7 +178,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         ?>
 		
 		<div class="container bg-secondary pt-4 pb-2 rounded">
-			<form action="<?php echo basename(htmlspecialchars($_SERVER['PHP_SELF']), '.php'); ?>" method="post">
+			<form action="<?php echo basename(htmlspecialchars($_SERVER['PHP_SELF']), '.php'); ?>" method="post" onSubmit="submitButton()">
 				<div class="form-group row align-items-center">
 					<label for="loginEmailAddress" class="col-sm-3 col-form-label">Email Address</label>
 					
@@ -185,7 +190,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 						}
 						?>
 						
-						<input type="email" class="form-control <?php echo (!empty($login_email_address_err) || !empty($login_err)) ? 'border border-danger' : ''; ?>" id="loginEmailAddress" name="loginEmailAddress" value="<?php echo !empty($_POST['loginEmailAddress']) ? $_POST['loginEmailAddress'] : $saved_login_email_address; ?>">
+						<input type="email" class="form-control <?php echo (!empty($login_email_address_err) || !empty($login_err)) ? 'border border-danger' : ''; ?>" id="loginEmailAddress" name="loginEmailAddress" value="<?php echo !empty($_POST['loginEmailAddress']) ? $_POST['loginEmailAddress'] : $saved_login_email_address; ?>" onKeyUp="changeEventButton(this)">
 						
 						<?php
 						if (isset($login_email_address_err) && !empty($login_email_address_err)) {
@@ -200,7 +205,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 					<label for="loginPassword" class="col-sm-3 col-form-label">Password</label>
 					
 					<div class="col-sm-9">
-						<input type="password" class="form-control <?php echo (!empty($login_password_err) || !empty($login_err)) ? 'border border-danger' : ''; ?>" id="loginPassword" name="loginPassword" value="<?php echo $_POST['loginPassword']; ?>">
+						<input type="password" class="form-control <?php echo (!empty($login_password_err) || !empty($login_err)) ? 'border border-danger' : ''; ?>" id="loginPassword" name="loginPassword" value="<?php echo $_POST['loginPassword']; ?>" onKeyUp="changeEventButton(this)">
 						
 						<?php
 						if (isset($login_password_err) && !empty($login_password_err)) {
@@ -224,11 +229,40 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 				}
 				?>
 
-				<button type="submit" class="btn btn-secondary btn-block mt-5">Login</button>
+				<button id="loginSubmitButton" type="submit" class="btn btn-secondary btn-block mt-5">
+					<span id="submitButton">Login</span>
+					
+					<img id="processingIcon" src="/moov/assets/images/processing_icon.svg" class="processing-icon d-none">
+					<span id="processingButton" class="d-none">Processing...</span>
+				</button>
 			</form>
 			
 			<p class="mb-0 mt-4 text-center"><a href="/moov/forgot-password">Forgot password?</a></p>
 			<p class="mb-0 text-center">Don't have an account? <a href="/moov/register">Register now.</a></p>
+			
+			<script>
+				function submitButton() {
+					document.getElementById('loginSubmitButton').disabled = true;
+					document.getElementById('submitButton').classList.add('d-none');
+					document.getElementById('processingIcon').classList.add('d-inline-block');
+					document.getElementById('processingIcon').classList.remove('d-none');
+					document.getElementById('processingButton').classList.remove('d-none');
+
+				}
+
+				function changeEventButton(event) {
+					if (event.keyCode == 13) {
+						event.preventDefault;
+
+						document.getElementById('loginSubmitButton').disabled = true;
+						document.getElementById('submitButton').classList.add('d-none');
+						document.getElementById('processingIcon').classList.add('d-inline-block');
+						document.getElementById('processingIcon').classList.remove('d-none');
+						document.getElementById('processingButton').classList.remove('d-none');
+
+					}
+				}
+			</script>
 		</div>
     </div>
 	

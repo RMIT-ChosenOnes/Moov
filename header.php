@@ -37,7 +37,7 @@
 			if (isset($_SESSION['moov_user_logged_in']) && $_SESSION['moov_user_logged_in'] == TRUE) {
 				echo '
 				<li class="nav-item dropdown">
-					<a class="nav-link dropdown-toggle" href="/moov/logout" id="userDropDownMenu" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Welcome back, ' . $_SESSION['moov_user_first_name'] . '</a>
+					<a class="nav-link dropdown-toggle" href="/moov/logout" id="userDropDownMenu" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Welcome back, ' . $_SESSION['moov_user_display_name'] . '</a>
 
 					<div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropDownMenu">
 						<a class="dropdown-item" href="/moov/modify-account">Modify My Account</a>

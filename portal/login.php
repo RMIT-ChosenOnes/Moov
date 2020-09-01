@@ -45,7 +45,7 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 						if (mysqli_stmt_fetch($login_stmt)) {
 							if (password_verify($login_password, $staff_saved_password)) {
 								if ($staff_account_status == 1) {
-									$login_err = 'Your account is disactivated. If you think this is an error, please contact the administrator.';
+									$login_err = 'Your account is deactivated. If you think this is an error, please contact the administrator.';
 
 								} elseif ($staff_account_status == 0) {
 									if (isset($_POST['portalRemember']) && $_POST['portalRemember'] == 'on') {
@@ -145,7 +145,7 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 			<div class="card-body">
 				<h1 class="card-title">Welcome to Moov Portal</h1>
 				
-				<form class="mt-5 mx-lg-5" action="<?php echo basename(htmlspecialchars($_SERVER['PHP_SELF']), '.php'); ?>" method="post">
+				<form class="mt-5 mx-lg-5" action="<?php echo basename(htmlspecialchars($_SERVER['PHP_SELF']), '.php'); ?>" method="post" onSubmit="submitButton()">
 					<input type="hidden" id="referrerUrl" name="referrerUrl" value="<?php echo $_GET['url'] . $_POST['referrerUrl'] ?>">
 					
 					<div class="col-auto p-0">
@@ -165,7 +165,7 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 							}
 							?>
 							
-							<input type="text" class="form-control form-control-lg <?php echo (!empty($login_username_err) || !empty($login_err)) ? 'border border-danger' : ''; ?>" id="portalUsername" name="portalUsername" placeholder="Username" value="<?php echo !empty($_POST['portalUsername']) ? $_POST['portalUsername'] : $saved_login_username; ?>">
+							<input type="text" class="form-control form-control-lg <?php echo (!empty($login_username_err) || !empty($login_err)) ? 'border border-danger' : ''; ?>" id="portalUsername" name="portalUsername" placeholder="Username" value="<?php echo !empty($_POST['portalUsername']) ? $_POST['portalUsername'] : $saved_login_username; ?>" onKeyUp="changeEventButton(this)">
 						</div>
 						
 						<?php
@@ -186,7 +186,7 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 								</div>
 							</div>
 							
-							<input type="password" class="form-control form-control-lg <?php echo (!empty($login_password_err) || !empty($login_err)) ? 'border border-danger' : ''; ?>" id="portalPassword" name="portalPassword" placeholder="Password" value="<?php echo $_POST['portalPassword']; ?>">
+							<input type="password" class="form-control form-control-lg <?php echo (!empty($login_password_err) || !empty($login_err)) ? 'border border-danger' : ''; ?>" id="portalPassword" name="portalPassword" placeholder="Password" value="<?php echo $_POST['portalPassword']; ?>" onKeyUp="changeEventButton(this)">
 						</div>
 						
 						<?php
@@ -210,8 +210,37 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 					}
 					?>
 					
-					<button type="submit" class="btn btn-primary btn-block btn-lg mt-4">Login</button>
+					<button id="loginSubmitButton" type="submit" class="btn btn-primary btn-block btn-lg mt-4">
+						<span id="submitButton">Login</span>
+					
+						<img id="processingIcon" src="/moov/assets/images/processing_icon.svg" class="processing-icon d-none">
+						<span id="processingButton" class="d-none">Processing...</span>
+					</button>
 				</form>
+				
+				<script>
+					function submitButton() {
+						document.getElementById('loginSubmitButton').disabled = true;
+						document.getElementById('submitButton').classList.add('d-none');
+						document.getElementById('processingIcon').classList.add('d-inline-block');
+						document.getElementById('processingIcon').classList.remove('d-none');
+						document.getElementById('processingButton').classList.remove('d-none');
+
+					}
+
+					function changeEventButton(event) {
+						if (event.keyCode == 13) {
+							event.preventDefault;
+
+							document.getElementById('loginSubmitButton').disabled = true;
+							document.getElementById('submitButton').classList.add('d-none');
+							document.getElementById('processingIcon').classList.add('d-inline-block');
+							document.getElementById('processingIcon').classList.remove('d-none');
+							document.getElementById('processingButton').classList.remove('d-none');
+
+						}
+					}
+				</script>
 				
 				<p class="mb-0 mt-4 text-center"><a href="/moov/portal/forgot-password">Forgot password?</a></p>
 			</div>
