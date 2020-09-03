@@ -44,6 +44,7 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 					}
 				} else {
 					$reset_error = TRUE;
+					$error_message = mysqli_error($conn);
 					
 				}
 			}
@@ -98,7 +99,7 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 						$mail->send();
 
 					} catch (Exception $e) {
-						$$error_message = $mail->ErrorInfo;
+						$error_message = $mail->ErrorInfo;
 
 					}
 					
@@ -107,6 +108,7 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 					
 				} else {
 					$reset_error = TRUE;
+					$error_message = mysqli_error($conn);
 					
 				}
 			}
@@ -176,7 +178,7 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 						<div class="alert alert-warning my-4 alert-dismissible fade show" role="alert">
 							Oops! There is an error occurred. Please try again later. If you continue to see this error, please contact the administrator.
 							
-						' . $error_message . '
+						' . (!empty($error_message) ? '<br/><br/><b>Error:</b> ' . $error_message : '') . '
 						
 							<button type="button" class="close" data-dismiss="alert" aria-label="Close">
 								<span aria-hidden="true">&times;</span>

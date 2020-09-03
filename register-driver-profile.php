@@ -26,7 +26,7 @@ if (isset($_SESSION['moov_user_temp_account_id']) && !empty($_SESSION['moov_user
 			$dl_date_of_birth_err = 'Please enter your date of birth.';
 
 		} else {
-			if (preg_match('/[^0-9\.\-\/]/', trim($_POST['dlDateOfBirth']))) {
+			if ((preg_match('/[^0-9\.\-\/]/', trim($_POST['dlDateOfBirth']))) || strlen(trim($_POST['dlDateOfBirth'])) < 8) {
 				$dl_date_of_birth_err = 'Please enter a valid date of birth.';
 
 			} else {
@@ -53,7 +53,11 @@ if (isset($_SESSION['moov_user_temp_account_id']) && !empty($_SESSION['moov_user
 			$temp_contact_number = trim($_POST['dlContactNumber']);
 				
 			$replace_temp_cn = str_replace($search_contact_number_symbol, $replace_contact_number_symbol, $temp_contact_number);
-			
+            
+            if (substr($replace_temp_cn, 0, 1) == 0) {
+                $replace_temp_cn = substr($replace_temp_cn, 1);
+            }
+            
 			if (preg_match('/^(0)?(4){1}[0-9]{8}$/', $replace_temp_cn)) {
 				$dl_contact_number = $replace_temp_cn;
 
@@ -93,7 +97,7 @@ if (isset($_SESSION['moov_user_temp_account_id']) && !empty($_SESSION['moov_user
 			$dl_date_of_expiry_err = 'Please enter the date of expiry on your driving license.';
 
 		} else {
-			if (preg_match('/[^0-9\.\-\/]/', trim($_POST['dlDateOfExpiry']))) {
+			if ((preg_match('/[^0-9\.\-\/]/', trim($_POST['dlDateOfExpiry']))) || strlen(trim($_POST['dlDateOfExpiry'])) < 8) {
 				$dl_date_of_expiry_err = 'Please enter a valid date of expiry.';
 
 			} else {
@@ -110,8 +114,6 @@ if (isset($_SESSION['moov_user_temp_account_id']) && !empty($_SESSION['moov_user
 				}
 			}
 		}
-		
-		
 
 		if (empty(trim($_POST['dlCountryOfIssue'])) || trim($_POST['dlCountryOfIssue']) == '') {
 			$dl_country_of_issue_err = 'Please select the country of issue.';
@@ -279,10 +281,12 @@ if (isset($_SESSION['moov_user_temp_account_id']) && !empty($_SESSION['moov_user
 
 											}  else {
 												$register_error = TRUE;
+												$error_message = mysqli_error($conn);
 
 											}
 										} else {
 											$register_error = TRUE;
+											$error_message = mysqli_error($conn);
 
 										}
 									}
@@ -291,6 +295,7 @@ if (isset($_SESSION['moov_user_temp_account_id']) && !empty($_SESSION['moov_user
 									
 								} else {
 									$register_error = TRUE;
+									$error_message = mysqli_error($conn);
 
 								}
 							}
@@ -300,6 +305,7 @@ if (isset($_SESSION['moov_user_temp_account_id']) && !empty($_SESSION['moov_user
 						}
 					} else {
 						$register_error = TRUE;
+						$error_message = mysqli_error($conn);
 
 					}
 				}
@@ -366,6 +372,8 @@ if (isset($_SESSION['moov_user_temp_account_id']) && !empty($_SESSION['moov_user
             echo '
             <div class="alert alert-warning my-4 alert-dismissible fade show" role="alert">
                 Oops! There is an error occurred. Please try again later. If you continue to see this error, please contact us immediately.
+				
+			' . (!empty($error_message) ? '<br/><br/><b>Error:</b> ' . $error_message : '') . '
 
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                     <span aria-hidden="true">&times;</span>

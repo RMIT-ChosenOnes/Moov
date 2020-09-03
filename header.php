@@ -6,6 +6,16 @@
 	<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navigationBar" aria-controls="navigationBar" aria-expanded="false" aria-label="Toggle navigation">
 		<span class="navbar-toggler-icon"></span>
 	</button>
+    
+    <?php
+    if ($_SESSION['moov_user_avatar_status'] == 0) {
+        $avatar_file_path = 'moov_default_avatar_500x500.png';
+
+    } elseif ($_SESSION['moov_user_avatar_status'] == 1) {
+        $avatar_file_path = 'avatar_' . $_SESSION['moov_user_account_id'] . '.' . $_SESSION['moov_user_avatar_type'];
+
+    }
+    ?>
 	
 	<div class="collapse navbar-collapse ml-lg-4" id="navigationBar">
 		<ul class="navbar-nav">
@@ -20,14 +30,33 @@
 			<li class="nav-item <?php echo isset($page_name) && $page_name == 'support' ? 'active' : ''; ?>">
 				<a class="nav-link" href="support">Support</a>
 			</li>
-			
-			<li class="nav-item d-block d-lg-none <?php echo isset($page_name) && $page_name == 'login' ? 'active' : ''; ?>">
-				<a class="nav-link" href="/moov/login">Login</a>
-			</li>
-			
-			<li class="nav-item d-block d-lg-none <?php echo isset($page_name) && $page_name == 'register' ? 'active' : ''; ?>">
-				<a class="nav-link" href="/moov/register">Register</a>
-			</li>
+            
+            <?php
+            if (isset($_SESSION['moov_user_logged_in']) && $_SESSION['moov_user_logged_in'] == TRUE) {
+				echo '
+				<li class="nav-item d-block d-lg-none dropdown ' . (isset($parent_page_name) && $parent_page_name == 'account' ? 'active' : '') . '">
+					<a class="nav-link dropdown-toggle" href="/moov/" id="userDropDownMenu" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Welcome back, ' . $_SESSION['moov_user_display_name'] . '</a>
+
+					<div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropDownMenu">
+						<a class="dropdown-item ' . (isset($page_name) && $page_name == 'my-account' ? 'active' : '') . '" href="/moov/my-account">My Account</a>
+						<a class="dropdown-item" href="/moov/logout">Logout</a>
+					</div>
+				</li>
+				';
+				
+			} else {
+				echo '
+				<li class="nav-item d-block d-lg-none ' . (isset($page_name) && $page_name == 'login' ? 'active' : '') . '">
+					<a class="nav-link" href="/moov/login">Login</a>
+				</li>
+				
+				<li class="nav-item d-block d-lg-none ' . (isset($page_name) && $page_name == 'register' ? 'active' : '') . '">
+					<a class="nav-link" href="/moov/register">Register</a>
+				</li>
+				';
+				
+			}
+            ?>
 		</ul>
 	</div>
 	
@@ -36,11 +65,11 @@
 			<?php
 			if (isset($_SESSION['moov_user_logged_in']) && $_SESSION['moov_user_logged_in'] == TRUE) {
 				echo '
-				<li class="nav-item dropdown">
-					<a class="nav-link dropdown-toggle" href="/moov/logout" id="userDropDownMenu" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Welcome back, ' . $_SESSION['moov_user_display_name'] . '</a>
+				<li class="nav-item dropdown ' . (isset($parent_page_name) && $parent_page_name == 'account' ? 'active' : '') . '">
+					<a class="nav-link nav-account dropdown-toggle" href="/moov/" id="userDropDownMenu" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Welcome back, ' . $_SESSION['moov_user_display_name'] . '&nbsp;&nbsp;&nbsp;<img class="rounded-circle nav-avatar" style="background: url(\'/moov/avatar/' . $avatar_file_path . '\')"></a>
 
 					<div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropDownMenu">
-						<a class="dropdown-item" href="/moov/modify-account">Modify My Account</a>
+						<a class="dropdown-item ' . (isset($page_name) && $page_name == 'my-account' ? 'active' : '') . '" href="/moov/my-account">My Account</a>
 						<a class="dropdown-item" href="/moov/logout">Logout</a>
 					</div>
 				</li>

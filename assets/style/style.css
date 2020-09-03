@@ -33,3 +33,40 @@
 	}
 }
 /* END processing icon */
+
+/* START user avatar */
+.user-avatar {
+	background-size: cover !important;
+	width: 250px;
+	height: 250px;
+	max-width: 100%;
+    background-position: center !important;
+    background-color: #edf5e1 !important;
+}
+
+.nav-avatar {
+    width: 30px;
+    height: 30px;
+    background-size: cover !important;
+    max-width: 100%;
+    background-position: center !important;
+    background-color: #edf5e1 !important;
+}
+
+.nav-account.dropdown-toggle::after {
+    display: none !important;
+}
+/* END user avatar */
+
+/* START 404 */
+#error {
+	background-size: cover;
+	background-position: center;
+	background-color: #edf5e1;
+}
+
+#errorCard {
+	width: 1200px;
+	max-width: 100%;
+}
+/* END 404 */

@@ -1,7 +1,7 @@
 <?php
 session_start();
 require_once 'config.php';
-$page_name = 'login';
+$page_name = basename(htmlspecialchars($_SERVER['PHP_SELF']), '.php');
 
 $login_email_address = $login_password = '';
 $login_email_address_err = $login_password_err = $login_err = '';
@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 	}
 	
 	if (empty($login_email_address_err) && empty($login_password_err)) {
-		$user_login_sql = 'SELECT account_id, display_name, password, is_deleted, is_deactivated FROM account WHERE email_address = ?';
+		$user_login_sql = 'SELECT account_id, display_name, password, has_avatar, avatar_type, is_deleted, is_deactivated FROM account WHERE email_address = ?';
 		
 		if ($user_login_stmt = mysqli_prepare($conn, $user_login_sql)) {
 			mysqli_stmt_bind_param($user_login_stmt, 's', $param_email_address);
@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 				mysqli_stmt_store_result($user_login_stmt);
 				
 				if (mysqli_stmt_num_rows($user_login_stmt) == 1) {
-					mysqli_stmt_bind_result($user_login_stmt, $user_account_id, $user_display_name, $user_password, $user_deleted_account, $user_account_status);
+					mysqli_stmt_bind_result($user_login_stmt, $user_account_id, $user_display_name, $user_password, $user_avatar_status, $user_avatar_type, $user_deleted_account, $user_account_status);
 					
 					if (mysqli_stmt_fetch($user_login_stmt)) {
 						if (password_verify($login_password, $user_password)) {
@@ -62,6 +62,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 									$_SESSION['moov_user_logged_in'] = TRUE;
 									$_SESSION['moov_user_account_id'] = $user_account_id;
 									$_SESSION['moov_user_display_name'] = $user_display_name;
+                                    $_SESSION['moov_user_avatar_status'] = $user_avatar_status;
+                                    $_SESSION['moov_user_avatar_type'] = $user_avatar_type;
 
 									header('location: /moov/');
 									unset($_POST);
@@ -79,6 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 				}
 			} else {
 				$login_error = TRUE;
+				$error_message = mysqli_error($conn);
 				
 			}
 		}
@@ -149,6 +152,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 			
 			unset($_SESSION['moov_user_registration_success']);
         }
+        
+        if ($_SESSION['moov_user_account_deleted'] === TRUE) {
+            echo '
+            <div class="alert alert-success my-4 alert-dismissible fade show" role="alert">
+                Account deleted successfully. We\'re sad to see you go.
+
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            ';
+			
+			unset($_SESSION['moov_user_account_deleted']);
+        }
 		
 		if ($_SESSION['moov_user_reset_password_success'] === TRUE) {
             echo '
@@ -168,6 +185,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             echo '
             <div class="alert alert-warning my-4 alert-dismissible fade show" role="alert">
                 Oops! There is an error occurred. Please try again later. If you continue to see this error, please contact us immediately.
+
+			' . (!empty($error_message) ? '<br/><br/><b>Error:</b> ' . $error_message : '') . '
 
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                     <span aria-hidden="true">&times;</span>

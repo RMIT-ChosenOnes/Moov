@@ -51,6 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 				}
 			} else {
 				$reset_error = TRUE;
+				$error_message = mysqli_error($conn);
 				
 			}
 		}
@@ -84,17 +85,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 			$param_token = password_hash($token, PASSWORD_DEFAULT);
 			$param_date_of_expiry = $date_of_expiry;
 			
-            mysqli_stmt_execute($register_new_reset_stmt);
-           	
-			$mail_email = $reset_email_address;
-			$mail_name = $reset_display_name;
-			$mail_subject = '[Moov] Reset Your Moov Account Password';
-			$mail_body = '<h1>Dear ' . $reset_display_name . ',</h1><p class="my-4 text-left">You are receiving this email because we received a password reset request for your account.</p><a class="btn btn-primary btn-block my-4" role="button" href="' . $reset_url . '">Click Here to Reset Password</a><p class="my-4 text-left">This password reset link will expire in 15 minutes.</p><p class="my-4 text-left">If you did not request a password reset, no further action is required.</p><p class="my-4 text-left">Kind Regards,<br/>Moov Admin</p><hr class="mt-5"><small class="text-left">If you\'re having trouble clicking the Reset Password button, copy and paste the URL below into your web browser: <a href="' . $reset_url . '">' . $reset_url . '</a></small>';
+            if (mysqli_stmt_execute($register_new_reset_stmt)) {
+				$mail_email = $reset_email_address;
+				$mail_name = $reset_display_name;
+				$mail_subject = '[Moov] Reset Your Moov Account Password';
+				$mail_body = '<h1>Dear ' . $reset_display_name . ',</h1><p class="my-4 text-left">You are receiving this email because we received a password reset request for your account.</p><a class="btn btn-primary btn-block my-4" role="button" href="' . $reset_url . '">Click Here to Reset Password</a><p class="my-4 text-left">This password reset link will expire in 15 minutes.</p><p class="my-4 text-left">If you did not request a password reset, no further action is required.</p><p class="my-4 text-left">Kind Regards,<br/>Moov Admin</p><hr class="mt-5"><small class="text-left">If you\'re having trouble clicking the Reset Password button, copy and paste the URL below into your web browser: <a href="' . $reset_url . '">' . $reset_url . '</a></small>';
 
-			require_once 'mail/mail-customer.php';
-			
-			$reset_confirmation = TRUE;
-            unset($_POST);
+				require_once 'mail/mail-customer.php';
+
+				$reset_confirmation = TRUE;
+				unset($_POST);
+				
+			} else {
+				$reset_error = TRUE;
+				$error_message = mysqli_error($conn);
+				
+			}
         }
 		
 		mysqli_stmt_close($delete_duplicate_reset_stmt);
@@ -173,6 +179,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             echo '
             <div class="alert alert-warning my-4 alert-dismissible fade show" role="alert">
                 Oops! There is an error occurred. Please try again later. If you continue to see this error, please contact us immediately.
+				
+			' . (!empty($error_message) ? '<br/><br/><b>Error:</b> ' . $error_message : '') . '
 
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                     <span aria-hidden="true">&times;</span>

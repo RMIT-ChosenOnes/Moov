@@ -87,6 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 									}
 								} else {
 									$reset_error = TRUE;
+									$error_message = mysqli_error($conn);
 								
 								}
 							}
@@ -105,6 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 				}
 			} else {
 				$reset_error = TRUE;
+				$error_message = mysqli_error($conn);
 
 			}
 		}
@@ -170,6 +172,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             echo '
             <div class="alert alert-warning my-4 alert-dismissible fade show" role="alert">
                 Oops! There is an error occurred. Please try again later. If you continue to see this error, please contact us immediately.
+				
+			' . (!empty($error_message) ? '<br/><br/><b>Error:</b> ' . $error_message : '') . '
 
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                     <span aria-hidden="true">&times;</span>

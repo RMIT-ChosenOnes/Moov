@@ -28,7 +28,7 @@ try {
 	$mail->send();
 
 } catch (Exception $e) {
-	echo $mail->ErrorInfo;
+	$error_message = $mail->ErrorInfo;
 
 }
 ?>

@@ -22,30 +22,60 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 				$staff_first_name_err = 'Please enter staff\'s first name.';
 
 			} else {
-				$staff_first_name = trim($_POST['staffFirstName']);
+				if (preg_match('/^[a-zA-Z\-\s]{3,100}$/', trim($_POST['staffFirstName']))) {
+					$staff_first_name = trim($_POST['staffFirstName']);
 
+				} else {
+					$staff_first_name_err = 'Please enter a valid staff\'s first name.';
+
+				}
 			}
 
 			if (empty(trim($_POST['staffLastName']))) {
 				$staff_last_name_err = 'Please enter staff\'s last name.';
 
 			} else {
-				$staff_last_name = trim($_POST['staffLastName']);
+				if (preg_match('/^[a-zA-Z\-\s]{2,100}$/', trim($_POST['staffLastName']))) {
+					$staff_last_name = trim($_POST['staffLastName']);
 
+				} else {
+					$staff_last_name_err = 'Please enter a valid staff\'s last name.';
+
+				}
 			}
 
 			if (empty(trim($_POST['staffUsername']))) {
 				$staff_username_err = 'Please enter an username.';
 
 			} else {
-				$check_username_duplication_sql = 'SELECT account_id FROM portal_account WHERE username = "' . trim($_POST['staffUsername']) . '"';
-				$check_username_duplication = mysqli_query($conn, $check_username_duplication_sql);
+				if (preg_match('/^([a-z]){3,50}\.([a-z]){2,49}$/', trim($_POST['staffUsername']))) {
+					$check_username_duplication_sql = 'SELECT account_id FROM portal_account WHERE username = ?';
+					$check_username_duplication_stmt = mysqli_prepare($conn, $check_username_duplication_sql);
 
-				if (mysqli_num_rows($check_username_duplication) > 0) {
-					$staff_username_err = 'Username has already been taken. Please try another username.';
+					mysqli_stmt_bind_param($check_username_duplication_stmt, 's', $param_staff_temp_username);
+					
+					$param_staff_temp_username = trim($_POST['staffUsername']);
+					
+					if (mysqli_stmt_execute($check_username_duplication_stmt)) {
+						mysqli_stmt_store_result($check_username_duplication_stmt);
+						
+						if (mysqli_stmt_num_rows($check_username_duplication_stmt) > 0) {
+							$staff_username_err = 'Username has already been taken. Please try another username.';
 
+						} else {
+							$staff_username = $param_staff_temp_username;
+
+						}
+					} else {
+						$register_error = TRUE;
+						$error_message = mysqli_error($conn);
+						
+					}
+					
+					mysqli_stmt_close($check_username_duplication_stmt);
+					
 				} else {
-					$staff_username = trim($_POST['staffUsername']);
+					$staff_username_err = 'Please enter a valid username. Format: firstname.lastname';
 
 				}
 			}
@@ -54,23 +84,37 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 				$staff_email_address_err = 'Please enter staff\'s email address.';
 
 			} else {
-				$check_email_duplication_sql = 'SELECT account_id FROM portal_account WHERE email_address = "' . trim($_POST[staffEmailAddress]) . '"';
-				$check_email_duplication = mysqli_query($conn, $check_email_duplication_sql);
+				$check_email_duplication_sql = 'SELECT account_id FROM portal_account WHERE email_address = ?';
+				$check_email_duplication_stmt = mysqli_prepare($conn, $check_email_duplication_sql);
+				
+				mysqli_stmt_bind_param($check_email_duplication_stmt, 's', $param_staff_temp_email_address);
+				$param_staff_temp_email_address = trim($_POST['staffEmailAddress']);
+				
+				if (mysqli_stmt_execute($check_email_duplication_stmt)) {
+					mysqli_stmt_store_result($check_email_duplication_stmt);
+					
+					if (mysqli_stmt_num_rows($check_email_duplication_stmt) > 0) {
+						$staff_email_address_err = 'Email address is already in use. Please try another email address.';
 
-				if (mysqli_num_rows($check_email_duplication) > 0) {
-					$staff_email_address_err = 'Email address is already in use. Please try another email address.';
+					} else {
+						$staff_email_address = $param_staff_temp_email_address;
 
+					}
 				} else {
-					$staff_email_address = trim($_POST['staffEmailAddress']);
-
+					$register_error = TRUE;
+					$error_message = mysqli_error($conn);
+					
 				}
+				
+				mysqli_stmt_close($check_email_duplication_stmt);
+				
 			}
 
 			if (empty(trim($_POST['staffPassword']))) {
 				$staff_password_err = 'Please enter a valid password.';
 
 			} elseif (!preg_match('/[a-z]+/', trim($_POST['staffPassword'])) || !preg_match('/[A-Z]+/', trim($_POST['staffPassword'])) || !preg_match('/[^a-zA-Z0-9]+/', trim($_POST['staffPassword'])) || strlen(trim($_POST['staffPassword'])) < 8) {
-				$staff_password_err = 'Password must contain at least one uppercase letter, one lowercase letter, one number digit, one special character, and have at least 8 characters long.';
+				$staff_password_err = 'Password must contain at least 1 uppercase letter, 1 lowercase letter, 1 number digit, 1 special character, and have at least 8 characters long.';
 
 			}
 
@@ -104,10 +148,10 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 						if (isset($_POST['staffNotify']) && $_POST['staffNotify'] == 'on') {
 							$mail_email = $staff_email_address;
 							$mail_name = $staff_first_name;
-							$mail_subject = 'Your Account Access to Moov Portal';
-							$mail_body = 'Dear ' . $staff_first_name . ',<br/><br/>Please find below your account access to Moov Portal.<br/><br/>Portal: <a href="http://kftech.ddns.net/moov/portal/" target="_blank">http://kftech.ddns.net/moov/portal/</a><br/>Username: ' . $staff_username . '<br/>Password: ' . $staff_password . '<br/><br/>Please do not share your password with anyone else.<br/><br/>Thank you.<br/><br/>Kind Regards,<br/>Moov Admin';
+							$mail_subject = '[Moov Portal] Your Account Access to Moov Portal';
+							$mail_body = '<h1>Dear ' . $staff_first_name . ',</h1><p class="my-4">Please find below your account access to Moov Portal.<p class="my-4 text-left"><b>Portal:</b> <a href="http://kftech.ddns.net/moov/portal/" target="_blank">http://kftech.ddns.net/moov/portal/</a><br/><b>Username:</b> ' . $staff_username . '<br/><b>Password:</b> ' . $staff_password . '</p><p class="my-4 text-left">Please do not share your password with anyone else.</p><p class="text-left my-4">Thank you.</p><p class="my-4 text-left">Kind Regards,<br/>Moov Portal Admin</p>';
 
-							require_once '../mail.php';
+							require_once '../../mail/mail-portal.php';
 							
 							$email_notification = TRUE;
 							
@@ -118,10 +162,14 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 						unset($_POST);
 
 					} else {
-						echo 'Error: ' . $register_staff_sql . '<br/>' . mysqli_error($conn);
+						$register_error = TRUE;
+						$error_message = mysqli_error($conn);
 						
 					}
 				}
+				
+				mysqli_stmt_close($register_stmt);
+				
 			}
 		}
 	} else {
@@ -204,6 +252,20 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
             </div>
             ';
         }
+		
+		if ($register_error === TRUE) {
+			echo '
+			<div class="alert alert-warning my-4 alert-dismissible fade show" role="alert">
+				Oops! There is an error occurred. Please try again later. If you continue to see this error, please contact the administrator.
+
+			' . (!empty($error_message) ? '<br/><br/><b>Error:</b> ' . $error_message : '') . '
+
+				<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			';
+		}
         ?>
 		
 		<form class="mt-5" action="<?php echo basename(htmlspecialchars($_SERVER['PHP_SELF']), '.php'); ?>" method="post" onSubmit="submitButton()">
@@ -211,7 +273,7 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 				<label for="staffRole" class="col-sm-2 col-form-label">Role</label>
 				
 				<div class="col-sm-10">
-					<select id="staffRole" class="form-control <?php echo !empty($staff_role_err) ? 'border border-danger' : ''; ?>" name="staffRole">
+					<select id="staffRole" class="form-control <?php echo !empty($staff_role_err) ? 'border border-danger' : ''; ?>" name="staffRole" onKeyUp="changeEventButton(this)">
 						<option value="0" selected>Select Staff's Role</option>
 						
 						<?php
@@ -243,7 +305,7 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 				<div class="form-group col-md-6">
 					<label for="staffFirstName">First Name</label>
 					
-					<input type="text" class="form-control <?php echo !empty($staff_first_name_err) ? 'border border-danger' : ''; ?>" id="staffFirstName" name="staffFirstName" value="<?php echo $_POST['staffFirstName']; ?>">
+					<input type="text" class="form-control <?php echo !empty($staff_first_name_err) ? 'border border-danger' : ''; ?>" id="staffFirstName" name="staffFirstName" value="<?php echo $_POST['staffFirstName']; ?>" onKeyUp="changeEventButton(this)">
 					
 					<?php
 					if (isset($staff_first_name_err) && !empty($staff_first_name_err)) {
@@ -256,7 +318,7 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 				<div class="form-group col-md-6">
 					<label for="staffLastName">Last Name</label>
 					
-					<input type="text" class="form-control <?php echo !empty($staff_last_name_err) ? 'border border-danger' : ''; ?>" id="staffLastName" name="staffLastName" value="<?php echo $_POST['staffLastName']; ?>">
+					<input type="text" class="form-control <?php echo !empty($staff_last_name_err) ? 'border border-danger' : ''; ?>" id="staffLastName" name="staffLastName" value="<?php echo $_POST['staffLastName']; ?>" onKeyUp="changeEventButton(this)">
 					
 					<?php
 					if (isset($staff_last_name_err) && !empty($staff_last_name_err)) {
@@ -271,7 +333,7 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 				<div class="form-group col-md-6">
 					<label for="staffUsername">Username</label>
 					
-					<input type="text" class="form-control <?php echo !empty($staff_username_err) ? 'border border-danger' : ''; ?>" id="staffUsername" name="staffUsername" aria-describedby="usernameInfo" value="<?php echo $_POST['staffUsername']; ?>">
+					<input type="text" class="form-control <?php echo !empty($staff_username_err) ? 'border border-danger' : ''; ?>" id="staffUsername" name="staffUsername" aria-describedby="usernameInfo" value="<?php echo $_POST['staffUsername']; ?>" onKeyUp="changeEventButton(this)">
 					
 					<?php
 					if (isset($staff_username_err) && !empty($staff_username_err)) {
@@ -287,7 +349,7 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 				<div class="form-group col-md-6">
 					<label for="staffEmailAddress">Email Address</label>
 					
-					<input type="email" class="form-control <?php echo !empty($staff_email_address_err) ? 'border border-danger' : ''; ?>" id="staffEmailAddress" name="staffEmailAddress" value="<?php echo $_POST['staffEmailAddress']; ?>">
+					<input type="email" class="form-control <?php echo !empty($staff_email_address_err) ? 'border border-danger' : ''; ?>" id="staffEmailAddress" name="staffEmailAddress" value="<?php echo $_POST['staffEmailAddress']; ?>" onKeyUp="changeEventButton(this)">
 					
 					<?php
 					if (isset($staff_email_address_err) && !empty($staff_email_address_err)) {
@@ -302,14 +364,14 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 				<div class="form-group col-md-6">
 					<label for="staffPassword">Password</label>
 					
-					<input type="password" class="form-control <?php echo !empty($staff_password_err) ? 'border border-danger' : ''; ?>" id="staffPassword" name="staffPassword" aria-describedby="passwordInfo" value="<?php echo $_POST['staffPassword']; ?>">
+					<input type="password" class="form-control <?php echo !empty($staff_password_err) ? 'border border-danger' : ''; ?>" id="staffPassword" name="staffPassword" aria-describedby="passwordInfo" value="<?php echo $_POST['staffPassword']; ?>" onKeyUp="changeEventButton(this)">
 					
 					<?php
 					if (isset($staff_password_err) && !empty($staff_password_err)) {
 						echo '<p class="text-danger mb-0">' . $staff_password_err . '</p>';
 
 					} else {
-						echo '<small id="passwordInfo" class="form-text text-muted">Password must contain at least one uppercase letter, one lowercase letter, one number digit, one special character, and have at least 8 characters long.</small>';
+						echo '<small id="passwordInfo" class="form-text text-muted">Minimum 8 characters, must contain at least 1 uppercase letter, 1 lowercase letter, 1 number digit, and 1 special character.</small>';
 
 					}
 					?>
@@ -318,7 +380,7 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 				<div class="form-group col-md-6">
 					<label for="staffConfirmPassword">Confirm Password</label>
 					
-					<input type="password" class="form-control <?php echo !empty($staff_confirm_password_err) ? 'border border-danger' : ''; ?>" id="staffConfirmPassword" name="staffConfirmPassword" value="<?php echo $_POST['staffConfirmPassword']; ?>">
+					<input type="password" class="form-control <?php echo !empty($staff_confirm_password_err) ? 'border border-danger' : ''; ?>" id="staffConfirmPassword" name="staffConfirmPassword" value="<?php echo $_POST['staffConfirmPassword']; ?>" onKeyUp="changeEventButton(this)">
 					
 					<?php
 					if (isset($staff_confirm_password_err) && !empty($staff_confirm_password_err)) {
@@ -330,32 +392,41 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 			</div>
 			
 			<div class="form-group form-check mt-2">
-				<input type="checkbox" class="form-check-input" id="staffNotify" name="staffNotify" <?php echo (isset($_POST['staffNotify']) && $_POST['staffNotify'] == 'on') ? 'checked' : $checked_notify == TRUE ? 'checked' : ($_SERVER['REQUEST_METHOD'] == 'POST' && !isset($_POST['staffNotify']) ? '' : 'checked'); ?>>
+				<input type="checkbox" class="form-check-input" id="staffNotify" name="staffNotify" <?php echo (isset($_POST['staffNotify']) && $_POST['staffNotify'] == 'on') ? 'checked' : $checked_notify == TRUE ? 'checked' : ($_SERVER['REQUEST_METHOD'] == 'POST' && !isset($_POST['staffNotify']) ? '' : 'checked'); ?> onKeyUp="changeEventButton(this)">
 				
 				<label class="form-check-label" for="staffNotify">Notify staff via email</label>
 			</div>
 			
-			<button id="staffSubmitButton" type="submit" class="btn btn-primary btn-block mt-5">Register</button>
+			<button id="registerSubmitButton" type="submit" class="btn btn-primary btn-block mt-5">
+				<span id="submitButton">Register</span>
+					
+				<img id="processingIcon" src="/moov/assets/images/processing_icon.svg" class="processing-icon d-none">
+				<span id="processingButton" class="d-none">Processing...</span>
+			</button>
 		</form>
 		
 		<script>
 			function submitButton() {
-				document.getElementById('staffSubmitButton').disabled = true;
-				document.getElementById('staffSubmitButton').innerHTML = '<span class="spinner-grow spinner-grow-sm" role="status" aria-hidden="true"></span> Processing...';
+				document.getElementById('registerSubmitButton').disabled = true;
+				document.getElementById('submitButton').classList.add('d-none');
+				document.getElementById('processingIcon').classList.add('d-inline-block');
+				document.getElementById('processingIcon').classList.remove('d-none');
+				document.getElementById('processingButton').classList.remove('d-none');
 
 			}
 
-			/*var processingConfirmation = document.getElementById('portalForgotUsername');
-
-			processingConfirmation.addEventListener('keyup', function(event) {
+			function changeEventButton(event) {
 				if (event.keyCode == 13) {
 					event.preventDefault;
 
-					document.getElementById('staffSubmitButton').disabled = true;
-					document.getElementById('staffSubmitButton').innerHTML = '<span class="spinner-grow spinner-grow-sm" role="status" aria-hidden="true"></span> Processing...';
+					document.getElementById('registerSubmitButton').disabled = true;
+					document.getElementById('submitButton').classList.add('d-none');
+					document.getElementById('processingIcon').classList.add('d-inline-block');
+					document.getElementById('processingIcon').classList.remove('d-none');
+					document.getElementById('processingButton').classList.remove('d-none');
 
 				}
-			})*/
+			}
 		</script>
 	</div>
 

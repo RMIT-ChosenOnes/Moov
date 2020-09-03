@@ -77,16 +77,20 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 									
 									unset($_POST);
 									
-								} else {
-									$login_password_err = 'Password does not match with the associated account.';
-									
 								}
+							} else {
+								$login_password_err = 'Password does not match with the associated account.';
+
 							}
 						}
 					} else {
 						$login_err = 'There\'s no account associated with this username. If you think this is an error, please contact the administrator.';
 						
 					}
+				} else {
+					$login_error = TRUE;
+					$error_message = mysqli_error($conn);
+					
 				}
 			}
 			
@@ -144,6 +148,22 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 			
 			<div class="card-body">
 				<h1 class="card-title">Welcome to Moov Portal</h1>
+				
+				<?php
+				if ($login_error === TRUE) {
+					echo '
+					<div class="alert alert-warning my-4 alert-dismissible fade show" role="alert">
+						Oops! There is an error occurred. Please try again later. If you continue to see this error, please contact the administrator.
+
+					' . (!empty($error_message) ? '<br/><br/><b>Error:</b> ' . $error_message : '') . '
+
+						<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+					</div>
+					';
+				}
+				?>
 				
 				<form class="mt-5 mx-lg-5" action="<?php echo basename(htmlspecialchars($_SERVER['PHP_SELF']), '.php'); ?>" method="post" onSubmit="submitButton()">
 					<input type="hidden" id="referrerUrl" name="referrerUrl" value="<?php echo $_GET['url'] . $_POST['referrerUrl'] ?>">

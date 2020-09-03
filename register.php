@@ -1,7 +1,7 @@
 <?php
 session_start();
 require_once 'config.php';
-$page_name = 'register';
+$page_name = basename(htmlspecialchars($_SERVER['PHP_SELF']), '.php');
 
 $user_display_name = $user_email_address = $user_password = '';
 $user_display_name_err = $user_email_address_err = $user_password_err = $user_confirm_password_err = '';
@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 		$user_display_name_err = 'Please enter your display name.';
 
 	} else {
-		if (preg_match('/^[a-zA-zw\-\s]{3,100}$/', trim($_POST['userDisplayName']))) {
+		if (preg_match('/^[a-zA-Z\-\s]{3,100}$/', trim($_POST['userDisplayName']))) {
 			$user_display_name = trim($_POST['userDisplayName']);
 
 		} else {
@@ -85,6 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 			} else {
 				$register_error = TRUE;
+				$error_message = mysqli_error($conn);
 
 			}
 		}
@@ -144,6 +145,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             echo '
             <div class="alert alert-warning my-4 alert-dismissible fade show" role="alert">
                 Oops! There is an error occured. Please try again later. If you continue to see this error, please contact us immediately.
+				
+			' . (!empty($error_message) ? '<br/><br/><b>Error:</b> ' . $error_message : '') . '
 
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                     <span aria-hidden="true">&times;</span>

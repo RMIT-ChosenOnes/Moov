@@ -24,11 +24,17 @@
 					<a class="dropdown-item" href="">Car</a>
 					<a class="dropdown-item" href="">User</a>
 					
-					<div class="dropdown-divider"></div>
+					<?php
+					if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_in'] == TRUE && $_SESSION['moov_portal_staff_role'] == 'Admin') {
+						echo '
+						<div class="dropdown-divider"></div>
 					
-					<h6 class="dropdown-header">Staff <span class="text-danger">(ADMIN ONLY)</span></h6>
-					<a class="dropdown-item <?php echo isset($page_name) && $page_name == 'new-staff' ? 'active' : ''; ?>" href="/moov/portal/database/new-staff">Register New Staff</a>
-					<a class="dropdown-item <?php echo isset($page_name) && $page_name == 'modify-staff' ? 'active' : ''; ?>" href="/moov/portal/database/modify-staff">Modify Staff</a>
+						<h6 class="dropdown-header">Staff <span class="text-danger">(ADMIN ONLY)</span></h6>
+						<a class="dropdown-item ' . (isset($page_name) && $page_name == 'new-staff' ? 'active' : '') . '" href="/moov/portal/database/new-staff">Register New Staff</a>
+						<a class="dropdown-item ' . (isset($page_name) && $page_name == 'modify-staff' ? 'active' : '') . '" href="/moov/portal/database/modify-staff">Modify Staff</a>
+						';
+					}
+					?>
 				</div>
 			</li>
 			
@@ -37,7 +43,7 @@
 			</li>
 			
 			<li class="nav-item dropdown d-block d-lg-none">
-				<a class="nav-link dropdown-toggle" href="/moov/portal/logout" id="portalStaffDropDownMenu" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">G'day, <?php echo $_SESSION['moov_portal_staff_first_name']; ?></a>
+				<a class="nav-link dropdown-toggle" href="/moov/portal/" id="portalStaffDropDownMenu" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">G'day, <?php echo $_SESSION['moov_portal_staff_first_name']; ?></a>
 
 				<div class="dropdown-menu dropdown-menu-right" aria-labelledby="portalStaffDropDownMenu">
 					<a class="dropdown-item" href="/moov/portal/modify-account">Modify My Account</a>
