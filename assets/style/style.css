@@ -40,6 +40,7 @@
 	width: 250px;
 	height: 250px;
 	max-width: 100%;
+    max-height: 100%;
     background-position: center !important;
     background-color: #edf5e1 !important;
 }
@@ -70,3 +71,31 @@
 	max-width: 100%;
 }
 /* END 404 */
+
+/* START driving license */
+#driving-license {
+    background: url('/moov/assets/images/driving_license_1445x700.jpg');
+    background-position: bottom !important;
+    background-size: cover !important;
+    background-color: transparent !important;
+    width: 500px;
+    max-width: 100%;
+}
+
+#driving-license .user-avatar {
+    width: 150px;
+    height: 150px;
+}
+
+.driving-license-content {
+    width: 500px;
+    max-width: 100%;
+}
+
+.dl-expired {
+    z-index: 100;
+    transform: rotate(-14deg);
+    border: 0.5rem double;
+    top: 4%;
+}
+/* END driving license */

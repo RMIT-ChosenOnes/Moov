@@ -131,8 +131,8 @@ if (isset($_SESSION['moov_user_temp_account_id']) && !empty($_SESSION['moov_user
 				}
 			} else {
 				$dl_state_of_issue = NULL;
+                
 			}
-
 		}
 		
 		if (empty(trim($_POST['dlLicenseNumber']))) {

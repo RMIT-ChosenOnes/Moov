@@ -12,6 +12,8 @@ if (isset($_SESSION['moov_user_logged_in']) && $_SESSION['moov_user_logged_in'] 
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $referrer_url = trim($_POST['referrerUrl']);
+    
 	if (empty(trim($_POST['loginEmailAddress']))) {
 		$login_email_address_err = 'Please enter your email address.';
 		
@@ -56,18 +58,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 										setcookie('moov_user_email_address', $login_email_address, time() + (86400 * 30), '/moov/');
 
 									}
+                                    
+                                    include 'check-driver-license.php';
+                                    unset($_POST);
 
-									session_start();
-
-									$_SESSION['moov_user_logged_in'] = TRUE;
-									$_SESSION['moov_user_account_id'] = $user_account_id;
-									$_SESSION['moov_user_display_name'] = $user_display_name;
-                                    $_SESSION['moov_user_avatar_status'] = $user_avatar_status;
-                                    $_SESSION['moov_user_avatar_type'] = $user_avatar_type;
-
-									header('location: /moov/');
-									unset($_POST);
-									
 								}
 							}
 						} else {
@@ -198,6 +192,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 		
 		<div class="container bg-secondary pt-4 pb-2 rounded">
 			<form action="<?php echo basename(htmlspecialchars($_SERVER['PHP_SELF']), '.php'); ?>" method="post" onSubmit="submitButton()">
+                <input type="hidden" id="referrerUrl" name="referrerUrl" value="<?php echo $_GET['url'] . $_POST['referrerUrl'] ?>">
+                
 				<div class="form-group row align-items-center">
 					<label for="loginEmailAddress" class="col-sm-3 col-form-label">Email Address</label>
 					
