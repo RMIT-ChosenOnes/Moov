@@ -18,7 +18,7 @@ if (isset($_SESSION['moov_user_logged_in']) && $_SESSION['moov_user_logged_in'] 
 	
 }
 
-if (isset($_SESSION['moov_user_temp_account_id']) && !empty($_SESSION['moov_user_temp_account_id'])) {
+if (isset($_SESSION['moov_user_temp_register']) && $_SESSION['moov_user_temp_register'] == TRUE) {
 	if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 		$referrer_temp_account_id = $_SESSION['moov_user_temp_account_id'];
 		
@@ -72,7 +72,7 @@ if (isset($_SESSION['moov_user_temp_account_id']) && !empty($_SESSION['moov_user
 
 		} else {
 			if (preg_match('/^[a-zA-zw\-\s]+$/', trim($_POST['dlFirstName']))) {
-				$dl_first_name = trim($_POST['dlFirstName']);
+				$dl_first_name = ucwords(trim($_POST['dlFirstName']));
 
 			} else {
 				$dl_first_name_err = 'Please enter a valid first name.';
@@ -85,7 +85,7 @@ if (isset($_SESSION['moov_user_temp_account_id']) && !empty($_SESSION['moov_user
 
 		} else {
 			if (preg_match('/^[a-zA-zw\-\s]+$/', trim($_POST['dlLastName']))) {
-				$dl_last_name = trim($_POST['dlLastName']);
+				$dl_last_name = ucwords(trim($_POST['dlLastName']));
 
 			} else {
 				$dl_last_name_err = 'Please enter a valid last name.';
@@ -220,98 +220,67 @@ if (isset($_SESSION['moov_user_temp_account_id']) && !empty($_SESSION['moov_user
 		}
 
 		if (empty($dl_date_of_birth_err) && empty($dl_contact_number_err) && empty($dl_first_name_err) && empty($dl_last_name_err) && empty($dl_license_number_err) && empty($dl_date_of_expiry_err) && empty($dl_country_of_issue_err) && empty($dl_state_of_issue_err)) {
-			$get_temp_account_sql = 'SELECT display_name, email_address, password FROM account_temp WHERE account_temp_id = ?';
+            $register_account_sql = 'INSERT INTO account (first_name, last_name, display_name, email_address, password, contact_number, date_of_birth) VALUES (?, ?, ?, ?, ?, ?, ?)';
 
-			if ($get_temp_account_stmt = mysqli_prepare($conn, $get_temp_account_sql)) {
-				mysqli_stmt_bind_param($get_temp_account_stmt, 'i', $param_temp_account_id);
+            if ($register_account_stmt = mysqli_prepare($conn, $register_account_sql)) {
+                mysqli_stmt_bind_param($register_account_stmt, 'sssssss', $param_first_name, $param_last_name, $param_display_name, $param_email_address, $param_password, $param_contact_number, $param_date_of_birth);
 
-				$param_temp_account_id = $referrer_temp_account_id;
+                $param_first_name = $dl_first_name;
+                $param_last_name = $dl_last_name;
+                $param_display_name = $_SESSION['moov_user_temp_account_display_name'];
+                $param_email_address = $_SESSION['moov_user_temp_account_email_address'];
+                $param_password = $_SESSION['moov_user_temp_account_password'];
+                $param_contact_number = $dl_contact_number;
+                $param_date_of_birth = $dl_date_of_birth;
 
-				if (mysqli_stmt_execute($get_temp_account_stmt)) {
-					mysqli_stmt_store_result($get_temp_account_stmt);
+                if (mysqli_stmt_execute($register_account_stmt)) {
+                    $account_id = mysqli_insert_id($conn);
 
-					if (mysqli_stmt_num_rows($get_temp_account_stmt) == 1) {
-						mysqli_stmt_bind_result($get_temp_account_stmt, $temp_display_name, $temp_email_address, $temp_password);
+                    $register_driving_license_sql = 'INSERT INTO driving_license (account_id, license_number, date_of_expiry, country_of_issue, state_of_issue) VALUES (?, ?, ?, ?, ?)';
 
-						if (mysqli_stmt_fetch($get_temp_account_stmt)) {
-							$register_account_sql = 'INSERT INTO account (display_name, email_address, password, contact_number, date_of_birth) VALUES (?, ?, ?, ?, ?)';
+                    if ($register_driving_license_stmt = mysqli_prepare($conn, $register_driving_license_sql)) {
+                        mysqli_stmt_bind_param($register_driving_license_stmt, 'issis', $param_account_id, $param_license_number, $param_date_of_expiry, $param_country_of_issue, $param_state_of_issue);
 
-							if ($register_account_stmt = mysqli_prepare($conn, $register_account_sql)) {
-								mysqli_stmt_bind_param($register_account_stmt, 'sssss', $param_display_name, $param_email_address, $param_password, $param_contact_number, $param_date_of_birth);
-								
-								$param_display_name = $temp_display_name;
-								$param_email_address = $temp_email_address;
-								$param_password = $temp_password;
-								$param_contact_number = $dl_contact_number;
-								$param_date_of_birth = $dl_date_of_birth;
-								
-								if (mysqli_stmt_execute($register_account_stmt)) {
-									$account_id = mysqli_insert_id($conn);
+                        $param_account_id = $account_id;
+                        $param_license_number = $dl_license_number;
+                        $param_date_of_expiry = $dl_date_of_expiry;
+                        $param_country_of_issue = $dl_country_of_issue;
+                        $param_state_of_issue = $dl_state_of_issue;
 
-									$register_driving_license_sql = 'INSERT INTO driving_license (account_id, first_name, last_name, license_number, date_of_expiry, country_of_issue, state_of_issue) VALUES (?, ?, ?, ?, ?, ?, ?)';
+                        if (mysqli_stmt_execute($register_driving_license_stmt)) {
+                            $mail_email = $param_email_address;
+                            $mail_name = $param_display_name;
+                            $mail_subject = 'Welcome to Moov!';
+                            $mail_body = '<h1>Welcome to Moov!</h1><h3>Hi ' . $param_display_name . ',</h3><p class="my-4">Congratulations, you have successfully created an account with Moov!</p><p class="my-4"><a href="http://kftech.ddns.net/moov/login">Log in</a> today to see what vehicles are available near you!</p><a class="btn btn-primary btn-block my-4" href="http://kftech.ddns.net/moov/login" role="button">Login Now!</a><p class="text-left my-4">Kind Regards,<br/>Moov Admin</p>';
 
-									if ($register_driving_license_stmt = mysqli_prepare($conn, $register_driving_license_sql)) {
-										mysqli_stmt_bind_param($register_driving_license_stmt, 'issssis', $param_account_id, $param_first_name, $param_last_name, $param_license_number, $param_date_of_expiry, $param_country_of_issue, $param_state_of_issue);
+                            require_once 'mail/mail-customer.php';
+                            
+                            unset($_SESSION['moov_user_temp_register']);
+                            unset($_SESSION['moov_user_temp_account_display_name']);
+                            unset($_SESSION['moov_user_temp_account_email_address']);
+                            unset($_SESSION['moov_user_temp_account_password']);
+                            unset($_POST);
 
-										$param_account_id = $account_id;
-										$param_first_name = $dl_first_name;
-										$param_last_name = $dl_last_name;
-										$param_license_number = $dl_license_number;
-										$param_date_of_expiry = $dl_date_of_expiry;
-										$param_country_of_issue = $dl_country_of_issue;
-										$param_state_of_issue = $dl_state_of_issue;
+                            $_SESSION['moov_user_registration_success'] = TRUE;
+                            header('location: /moov/login');
 
-										if (mysqli_stmt_execute($register_driving_license_stmt)) {
-											$delete_temp_record_sql = 'DELETE FROM account_temp WHERE account_temp_id = ' . $referrer_temp_account_id;
+                        } else {
+                            $register_error = TRUE;
+                            $error_message = mysqli_error($conn);
 
-											if (mysqli_query($conn, $delete_temp_record_sql)) {
-												$mail_email = $temp_email_address;
-												$mail_name = $temp_display_name;
-												$mail_subject = 'Welcome to Moov!';
-												$mail_body = '<h1>Welcome to Moov!</h1><h3>Hi ' . $temp_display_name . ',</h3><p class="my-4">Congratulations, you have successfully created an account with Moov!</p><p class="my-4"><a href="http://kftech.ddns.net/moov/login">Log in</a> today to see what vehicles are available near you!</p><a class="btn btn-primary btn-block my-4" href="http://kftech.ddns.net/moov/login" role="button">Login Now!</a><p class="text-left my-4">Kind Regards,<br/>Moov Admin</p>';
+                        }
+                    }
 
-												require_once 'mail/mail-customer.php';
-												
-												unset($_SESSION['moov_user_temp_account_id']);
-												unset($_SESSION['moov_user_temp_account_display_name']);
-												unset($_POST);
+                    mysqli_stmt_close($register_driving_license_stmt);
 
-												$_SESSION['moov_user_registration_success'] = TRUE;
-												header('location: /moov/login');
+                } else {
+                    $register_error = TRUE;
+                    $error_message = mysqli_error($conn);
 
-											}  else {
-												$register_error = TRUE;
-												$error_message = mysqli_error($conn);
+                }
+            }
 
-											}
-										} else {
-											$register_error = TRUE;
-											$error_message = mysqli_error($conn);
-
-										}
-									}
-									
-									mysqli_stmt_close($register_driving_license_stmt);
-									
-								} else {
-									$register_error = TRUE;
-									$error_message = mysqli_error($conn);
-
-								}
-							}
-
-							mysqli_stmt_close($register_account_stmt);
-							
-						}
-					} else {
-						$register_error = TRUE;
-						$error_message = mysqli_error($conn);
-
-					}
-				}
-			}
-
-			mysqli_stmt_close($get_temp_account_stmt);
+            mysqli_stmt_close($register_account_stmt);
 
 		}
 	}

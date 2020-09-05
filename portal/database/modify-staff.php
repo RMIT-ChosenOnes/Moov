@@ -1,7 +1,7 @@
 <?php
 session_start();
 require_once '../config.php';
-$parent_page_name = 'database';
+$parent_page_name = 'staff';
 $page_name = basename(htmlspecialchars($_SERVER['PHP_SELF']), '.php');
 
 $selected_staff_id = $modify_first_name = $modify_last_name = $modify_email_address = $modify_role = $modify_password = $modify_account_status = '';
@@ -280,7 +280,7 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 			<input type="hidden" id="selectedStaffId" name="selectedStaffId" value="<?php echo $_POST['selectedStaffId']; ?>">
 			
 			<div id="accountInformation" class="<?php echo $record_updated === FALSE ? 'd-block' : ''; ?>">
-				<div class="form-group row">
+				<div class="form-group row align-items-center">
 					<label for="staffUsername" class="col-sm-3 col-form-label">Username</label>
 
 					<div class="col-sm-9">
@@ -303,7 +303,7 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 					</div>
 				</div>
 
-				<div class="form-group row mt-4">
+				<div class="form-group row mt-4 align-items-center">
 					<label for="staffLastName" class="col-sm-3 col-form-label">Last Name</label>
 
 					<div class="col-sm-9">
@@ -318,7 +318,7 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 					</div>
 				</div>
 
-				<div class="form-group row mt-4">
+				<div class="form-group row mt-4 align-items-center">
 					<label for="staffEmailAddress" class="col-sm-3 col-form-label">Email Address</label>
 
 					<div class="col-sm-9">
@@ -333,7 +333,7 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 					</div>
 				</div>
 
-				<div class="form-group row mt-4">
+				<div class="form-group row mt-4 align-items-center">
 					<label for="staffRole" class="col-sm-3 col-form-label">Role</label>
 
 					<div class="col-sm-9">
@@ -367,7 +367,7 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 
 				<hr class="my-5">
 
-				<div class="form-group row">
+				<div class="form-group row align-items-center">
 					<label for="staffUpdatePassword" class="col-sm-3 col-form-label">Update Password</label>
 
 					<div class="col-sm-9">
@@ -385,7 +385,7 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 					</div>
 				</div>
 
-				<div class="form-group row mt-4">
+				<div class="form-group row mt-4 align-items-center">
 					<label for="staffConfirmPassword" class="col-sm-3 col-form-label">Confirm Password</label>
 
 					<div class="col-sm-9">

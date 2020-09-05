@@ -224,7 +224,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 				</button>
 			</form>
 			
-			<p class="mb-0 text-center">Already have an account? <a href="/moov/login">Login now.</a></p>
+			<p class="mb-0 mt-4 text-center">Already have an account? <a href="/moov/login">Login now.</a></p>
 			<p class="mb-0 text-center">Don't have an account? <a href="/moov/register">Register now.</a></p>
 			
 			<script>

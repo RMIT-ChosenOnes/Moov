@@ -1,7 +1,7 @@
 <?php
 session_start();
 require_once '../config.php';
-$parent_page_name = 'database';
+$parent_page_name = 'staff';
 $page_name = basename(htmlspecialchars($_SERVER['PHP_SELF']), '.php');
 
 $staff_role = $staff_first_name = $staff_last_name = $staff_username = $staff_email_address = $staff_password = '';

@@ -45,3 +45,15 @@
 	}
 }
 /* END processing icon */
+
+/* START user avatar */
+.customer-avatar {
+	background-size: cover !important;
+	width: 250px;
+	height: 250px;
+	max-width: 100%;
+    max-height: 100%;
+    background-position: center !important;
+    background-color: #edf5e1 !important;
+}
+/* END user avatar */

@@ -6,7 +6,7 @@ $page_name = basename(htmlspecialchars($_SERVER['PHP_SELF']), '.php');
 $user_display_name = $user_email_address = $user_password = '';
 $user_display_name_err = $user_email_address_err = $user_password_err = $user_confirm_password_err = '';
 
-if (isset($_SESSION['moov_user_temp_account_id']) && !empty($_SESSION['moov_user_temp_account_id'])) {
+if (isset($_SESSION['moov_user_temp_register']) && $_SESSION['moov_user_temp_register'] == TRUE) {
 	header('location: /moov/register-driver-profile');
 	
 } elseif (isset($_SESSION['moov_user_logged_in']) && $_SESSION['moov_user_logged_in'] == TRUE) {
@@ -67,28 +67,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 	}
 
 	if (empty($user_display_name_err) && empty($user_email_address_err) && empty($user_password_err) && empty($user_confirm_passowrd_err)) {
-		$temp_register_user_sql = 'INSERT INTO account_temp (display_name, email_address, password) VALUES (?, ?, ?)';
-
-		if ($temp_register_stmt = mysqli_prepare($conn, $temp_register_user_sql)) {
-			mysqli_stmt_bind_param($temp_register_stmt, 'sss', $param_display_name, $param_email_address, $param_password);
-
-			$param_display_name = $user_display_name;
-			$param_email_address = $user_email_address;
-			$param_password = password_hash($user_password, PASSWORD_DEFAULT);
-
-			if (mysqli_stmt_execute($temp_register_stmt)) {
-				$_SESSION['moov_user_temp_account_id'] = mysqli_insert_id($conn);
-				$_SESSION['moov_user_temp_account_display_name'] = $user_display_name;
-
-				unset($_POST);
-				header('location: /moov/register-driver-profile');
-
-			} else {
-				$register_error = TRUE;
-				$error_message = mysqli_error($conn);
-
-			}
-		}
+        $_SESSION['moov_user_temp_register'] = TRUE;
+        $_SESSION['moov_user_temp_account_display_name'] = $user_display_name;
+        $_SESSION['moov_user_temp_account_email_address'] = $user_email_address;
+        $_SESSION['moov_user_temp_account_password'] = password_hash($user_password, PASSWORD_DEFAULT);
+        
+        unset($_POST);
+        header('location: /moov/register-driver-profile');
+        
 	}
 }
 ?>

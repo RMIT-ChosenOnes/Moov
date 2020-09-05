@@ -312,8 +312,6 @@ if (isset($_SESSION['moov_user_logged_in']) && $_SESSION['moov_user_logged_in'] 
         // Update Driving License
         if (isset($_POST['updateLicense'])) {
             $dl_id = $_POST['drivingLicenseId'];
-            $dl_first_name = $_POST['drivingLicenseFirstName'];
-            $dl_last_name = $_POST['drivingLicenseLastName'];
             
             if (empty(trim($_POST['drivingLicenseDateOfExpiry']))) {
                 $dl_date_of_expiry_err = 'Please enter the date of expiry on your driving license.';
@@ -442,14 +440,12 @@ if (isset($_SESSION['moov_user_logged_in']) && $_SESSION['moov_user_logged_in'] 
             }
             
             if (empty($dl_license_number_err) && empty($dl_date_of_expiry_err) && empty($dl_country_of_issue_err) && empty($dl_state_of_issue_err)) {
-                $update_new_license_sql = 'INSERT INTO driving_license (account_id, first_name, last_name, license_number, date_of_expiry, country_of_issue, state_of_issue) VALUES (?, ?, ?, ?, ?, ?, ?)';
+                $update_new_license_sql = 'INSERT INTO driving_license (account_id, license_number, date_of_expiry, country_of_issue, state_of_issue) VALUES (?, ?, ?, ?, ?)';
                 
                 if ($update_new_license_stmt = mysqli_prepare($conn, $update_new_license_sql)) {
-                    mysqli_stmt_bind_param($update_new_license_stmt, 'issssis', $param_user_account_id, $param_dl_first_name, $param_dl_last_name, $param_dl_license_number, $param_dl_date_of_expiry, $param_dl_country_of_issue, $param_dl_state_of_issue);
+                    mysqli_stmt_bind_param($update_new_license_stmt, 'issis', $param_user_account_id, $param_dl_license_number, $param_dl_date_of_expiry, $param_dl_country_of_issue, $param_dl_state_of_issue);
                     
                     $param_user_account_id = $_SESSION['moov_user_account_id'];
-                    $param_dl_first_name = $dl_first_name;
-                    $param_dl_last_name = $dl_last_name;
                     $param_dl_license_number = $dl_license_number;
                     $param_dl_date_of_expiry = $dl_date_of_expiry;
                     $param_dl_country_of_issue = $dl_country_of_issue;
@@ -466,6 +462,7 @@ if (isset($_SESSION['moov_user_logged_in']) && $_SESSION['moov_user_logged_in'] 
                         if (mysqli_stmt_execute($set_current_license_expired_stmt)) {
                             $dl_updated = TRUE;
                             unset($_POST);
+                            unset($_SESSION['moov_user_license_expired']);
                             
                         } else {
                             $update_error = TRUE;
@@ -491,7 +488,7 @@ if (isset($_SESSION['moov_user_logged_in']) && $_SESSION['moov_user_logged_in'] 
         }
     }
 } else {
-    header('location: /moov/login?url=/moov/' . $page_name);
+    header('location: /moov/login?url=' . urlencode('/moov/' . $page_name));
     
 }
 ?>
@@ -543,6 +540,18 @@ if (isset($_SESSION['moov_user_logged_in']) && $_SESSION['moov_user_logged_in'] 
 		<h1 class="text-center">My Account</h1>
         
         <?php
+        if ($_SESSION['moov_user_license_expired'] === TRUE) {
+            echo '
+            <div class="alert alert-warning my-4 alert-dismissible fade show" role="alert">
+                Your driver license is expired. Please update your new driver license before you can continue to book a car.
+
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            ';
+        }
+        
 		if ($update_error === TRUE) {
             echo '
             <div class="alert alert-warning my-4 alert-dismissible fade show" role="alert">
@@ -622,24 +631,24 @@ if (isset($_SESSION['moov_user_logged_in']) && $_SESSION['moov_user_logged_in'] 
 		
 		<ul class="nav nav-tabs" id="myAccount" role="tablist">
 			<li class="nav-item" role="presentation">
-				<a class="nav-link active" id="myProfileTab" data-toggle="tab" href="#my-profile" role="tab" aria-controls="my-profile" aria-selected="true"><h4>My Profile</h4></a>
+				<a class="nav-link active" id="myProfile" data-toggle="tab" href="#my-profile" role="tab" aria-controls="my-profile" aria-selected="true"><h4>My Profile</h4></a>
 			</li>
 			
 			<li class="nav-item" role="presentation">
-				<a class="nav-link" id="myLicenseTab" data-toggle="tab" href="#my-license" role="tab" aria-controls="my-license" aria-selected="false"><h4>My License</h4></a>
+				<a class="nav-link" id="myLicense" data-toggle="tab" href="#my-license" role="tab" aria-controls="my-license" aria-selected="false"><h4>My License</h4></a>
 			</li>
 			
 			<li class="nav-item" role="presentation">
-				<a class="nav-link" id="myPaymentTab" data-toggle="tab" href="#my-payment" role="tab" aria-controls="my-payment" aria-selected="false"><h4>My Payment Method</h4></a>
+				<a class="nav-link" id="myPayment" data-toggle="tab" href="#my-payment" role="tab" aria-controls="my-payment" aria-selected="false"><h4>My Payment Method</h4></a>
 			</li>
 		</ul>
 		
 		<form action="<?php echo basename(htmlspecialchars($_SERVER['PHP_SELF']), '.php'); ?>" method="post" enctype="multipart/form-data" onSubmit="submittton()">
             <div class="tab-content" id="myAccountContent">
                 <!-- My Profile -->
-                <div class="tab-pane fade show active" id="my-profile" role="tabpanel" aria-labelledby="myProfileTab">
+                <div class="tab-pane fade show active" id="my-profile" role="tabpanel" aria-labelledby="myProfile">
                     <?php
-                    $get_user_account_details_sql = 'SELECT display_name, email_address, contact_number, date_of_birth, has_avatar, avatar_type FROM account WHERE account_id = ?';
+                    $get_user_account_details_sql = 'SELECT first_name, last_name, display_name, email_address, contact_number, date_of_birth, has_avatar, avatar_type FROM account WHERE account_id = ?';
 
                     if ($get_user_account_details_stmt = mysqli_prepare($conn, $get_user_account_details_sql)) {
                         mysqli_stmt_bind_param($get_user_account_details_stmt, 'i', $param_user_account_id);
@@ -650,6 +659,8 @@ if (isset($_SESSION['moov_user_logged_in']) && $_SESSION['moov_user_logged_in'] 
                             $get_user_account_details = mysqli_stmt_get_result($get_user_account_details_stmt);
 
                             while ($user_account_details = mysqli_fetch_assoc($get_user_account_details)) {
+                                $saved_first_name = $user_account_details['first_name'];
+                                $saved_last_name = $user_account_details['last_name'];
                                 $saved_display_name = $user_account_details['display_name'];
                                 $saved_email_address = $user_account_details['email_address'];
                                 $saved_contact_number = $user_account_details['contact_number'];
@@ -706,7 +717,23 @@ if (isset($_SESSION['moov_user_logged_in']) && $_SESSION['moov_user_logged_in'] 
 							<div class="col-sm-8 mt-3 mt-sm-0">
                                 <h4 class="d-block d-sm-none text-center mb-3">My Details</h4>
                                 
-								<div class="form-group">
+                                <div class="form-group">
+									<label for="userFirstName">First Name</label>
+									
+									<input type="text" class="form-control" id="userFirstName" name="userFirstName" aria-describedby="firstNameInfo" value="<?php echo $saved_first_name; ?>" readonly>
+                                    
+                                    <small id="firstNameInfo" class="form-text text-muted">If you wish to change your first name, please contact us.</small>
+								</div>
+                                
+                                <div class="form-group mt-4">
+									<label for="userLastName">Last Name</label>
+									
+									<input type="text" class="form-control" id="userLastName" name="userLastName" aria-describedby="lastNameInfo" value="<?php echo $saved_last_name; ?>" readonly>
+									
+									<small id="lastNameInfo" class="form-text text-muted">If you wish to change your last name, please contact us.</small>
+								</div>
+                                
+								<div class="form-group mt-4">
 									<label for="userDisplayName">Display Name</label>
 									
 									<input type="text" class="form-control <?php echo !empty($user_display_name_err) ? 'border border-danger' : ''; ?>" id="userDisplayName" name="userDisplayName" value="<?php echo isset($_POST['myDetails']) ? $_POST['userDisplayName'] : $saved_display_name; ?>" onKeyDown="showSubmitButton()">
@@ -821,9 +848,9 @@ if (isset($_SESSION['moov_user_logged_in']) && $_SESSION['moov_user_logged_in'] 
                 </div>
 
                 <!-- My Driving License -->
-                <div class="tab-pane fade" id="my-license" role="tabpanel" aria-labelledby="myLicenseTab">
+                <div class="tab-pane fade" id="my-license" role="tabpanel" aria-labelledby="myLicense">
                     <?php
-                    $get_driving_license_details_sql = 'SELECT driving_license_id, first_name, last_name, license_number, date_of_expiry, country_of_issue, state_of_issue, is_expired, created_at FROM driving_license WHERE account_id = ? ORDER BY driving_license_id DESC LIMIT 1';
+                    $get_driving_license_details_sql = 'SELECT driving_license_id, license_number, date_of_expiry, country_of_issue, state_of_issue, is_expired, created_at FROM driving_license WHERE account_id = ? ORDER BY driving_license_id DESC LIMIT 1';
 
                     if ($get_driving_license_details_stmt = mysqli_prepare($conn, $get_driving_license_details_sql)) {
                         mysqli_stmt_bind_param($get_driving_license_details_stmt, 'i', $param_user_account_id);
@@ -868,8 +895,6 @@ if (isset($_SESSION['moov_user_logged_in']) && $_SESSION['moov_user_logged_in'] 
                                 mysqli_stmt_close($get_country_of_issue_stmt);
 
                                 $saved_driving_license_id = $driving_license_details['driving_license_id'];
-                                $saved_first_name = $driving_license_details['first_name'];
-                                $saved_last_name = $driving_license_details['last_name'];
                                 $saved_license_number = $driving_license_details['license_number'];
                                 $saved_date_of_expiry = date('d/m/Y', strtotime($driving_license_details['date_of_expiry']));
                                 $saved_license_status = $driving_license_details['is_expired'];
@@ -944,13 +969,17 @@ if (isset($_SESSION['moov_user_logged_in']) && $_SESSION['moov_user_logged_in'] 
                                                         <div class="col-sm-6">
                                                             <label for="drivingLicenseFirstName">First Name</label>
 
-                                                            <input type="text" class="form-control" id="drivingLicenseFirstName" name="drivingLicenseFirstName" value="<?php echo $saved_first_name; ?>" readonly>
+                                                            <input type="text" class="form-control" id="drivingLicenseFirstName" name="drivingLicenseFirstName" aria-describedby="dlFirstNameInfo" value="<?php echo $saved_first_name; ?>" readonly>
+                                                            
+                                                            <small id="dlFirstNameInfo" class="form-text text-muted">If you wish to change your first name, please contact us.</small>
                                                         </div>
                                                         
                                                         <div class="col-sm-6 mt-4 mt-sm-0">
                                                             <label for="drivingLicenseLastName">Last Name</label>
 
-                                                            <input type="text" class="form-control" id="drivingLicenseLastName" name="drivingLicenseLastName" value="<?php echo $saved_last_name; ?>" readonly>
+                                                            <input type="text" class="form-control" id="drivingLicenseLastName" name="drivingLicenseLastName" aria-describedby="dlLastNameInfo" value="<?php echo $saved_last_name; ?>" readonly>
+                                                            
+                                                            <small id="dlLastNameInfo" class="form-text text-muted">If you wish to change your last name, please contact us.</small>
                                                         </div>
                                                     </div>
                                                     
@@ -1179,7 +1208,7 @@ if (isset($_SESSION['moov_user_logged_in']) && $_SESSION['moov_user_logged_in'] 
                 </div>
 
                 <!-- My Payment Method -->
-                <div class="tab-pane fade" id="my-payment" role="tabpanel" aria-labelledby="myPaymentTab">
+                <div class="tab-pane fade" id="my-payment" role="tabpanel" aria-labelledby="myPayment">
                     <?php require 'coming-soon.php'; ?>
                 </div>
             </div>
@@ -1190,6 +1219,15 @@ if (isset($_SESSION['moov_user_logged_in']) && $_SESSION['moov_user_logged_in'] 
         document.getElementById('myProfile').onload = function() {
             document.getElementById('accountSubmitButton').disabled = true;
             
+            // Show tab if $_GET['tab'] is defined in URL
+            var showTab = <?php echo !empty($_GET['tab']) ? $_GET['tab'] : '\'\''; ?>;
+            
+            if (showTab != '') {
+                $('#<?php echo $_GET['tab']; ?>').tab('show');
+                
+            }
+            
+            // Show avatar delete button
             var avatarStatus = <?php echo $_SESSION['moov_user_avatar_status']; ?>;
             
             if (avatarStatus == 0) {
@@ -1197,18 +1235,20 @@ if (isset($_SESSION['moov_user_logged_in']) && $_SESSION['moov_user_logged_in'] 
                 
             }
             
+            // Show My License tab and error message if submitted form contains error
             var drivingLicenseErrorStatus = <?php echo !empty($driving_license_error) ? $driving_license_error : 0; ?>;
             
             if (drivingLicenseErrorStatus == 1) {
-                $('#myLicenseTab').tab('show');
+                $('#myLicense').tab('show');
                 $('#updateDrivingLicense').modal('show');
                 
             }
             
+            // Show My License tab if updated license
             var drivingLicenseUpdateStatus = <?php echo !empty($dl_updated) ? $dl_updated : 0; ?>;
             
             if (drivingLicenseUpdateStatus == 1) {
-                $('#myLicenseTab').tab('show');
+                $('#myLicense').tab('show');
                 
             }
         }

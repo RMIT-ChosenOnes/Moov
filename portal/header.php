@@ -22,7 +22,10 @@
 				
 				<div class="dropdown-menu" aria-labelledby="databaseDropDownMenu">
 					<a class="dropdown-item" href="">Car</a>
-					<a class="dropdown-item" href="">User</a>
+                    
+                    <div class="dropdown-divider"></div>
+                    
+					<a class="dropdown-item <?php echo isset($page_name) && $page_name == 'modify-customer' ? 'active' : ''; ?>" href="modify-customer">Modify Customer</a>
 					
 					<?php
 					if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_in'] == TRUE && $_SESSION['moov_portal_staff_role'] == 'Admin') {
@@ -37,6 +40,29 @@
 					?>
 				</div>
 			</li>
+            
+            <li class="nav-item dropdown <?php echo isset($parent_page_name) && $parent_page_name == 'customer' ? 'active' : ''; ?>">
+				<a class="nav-link dropdown-toggle" href="/moov/portal/customer" id="customerDropDownMenu" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Customer</a>
+				
+				<div class="dropdown-menu" aria-labelledby="customerDropDownMenu">
+					<a class="dropdown-item <?php echo isset($page_name) && $page_name == 'modify-customer' ? 'active' : ''; ?>" href="modify-customer">Modify Customer</a>
+				</div>
+			</li>
+
+            <?php
+            if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_in'] == TRUE && $_SESSION['moov_portal_staff_role'] == 'Admin') {
+                echo '
+                <li class="nav-item dropdown ' . (isset($parent_page_name) && $parent_page_name == 'staff' ? 'active' : '') . '">
+				    <a class="nav-link dropdown-toggle" href="/moov/portal/database" id="staffDropDownMenu" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Staff</a>
+                    
+                    <div class="dropdown-menu" aria-labelledby="staffDropDownMenu">
+                        <a class="dropdown-item ' . (isset($page_name) && $page_name == 'new-staff' ? 'active' : '') . '" href="/moov/portal/database/new-staff">Register New Staff</a>
+                        <a class="dropdown-item ' . (isset($page_name) && $page_name == 'modify-staff' ? 'active' : '') . '" href="/moov/portal/database/modify-staff">Modify Staff</a>
+                    </div>
+                </li>
+                ';
+            }
+            ?>
 			
 			<li class="nav-item <?php echo isset($page_name) && $page_name == 'reports' ? 'active' : ''; ?>">
 				<a class="nav-link" href="reports">Reports</a>
