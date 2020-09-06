@@ -29,7 +29,7 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 		}
 		
 		if (empty($login_username_err) && empty($login_password_err)) {
-			$login_sql = 'SELECT first_name, email_address, password, role, is_deactivated FROM portal_account WHERE username = ?';
+			$login_sql = 'SELECT account_id, first_name, email_address, password, role, is_deactivated FROM portal_account WHERE username = ?';
 			
 			if ($login_stmt = mysqli_prepare($conn, $login_sql)) {
 				mysqli_stmt_bind_param($login_stmt, 's', $param_username);
@@ -40,7 +40,7 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 					mysqli_stmt_store_result($login_stmt);
 					
 					if (mysqli_stmt_num_rows($login_stmt) == 1) {
-						mysqli_stmt_bind_result($login_stmt, $staff_first_name, $staff_email, $staff_saved_password, $staff_role, $staff_account_status);
+						mysqli_stmt_bind_result($login_stmt, $staff_account_id, $staff_first_name, $staff_email, $staff_saved_password, $staff_role, $staff_account_status);
 						
 						if (mysqli_stmt_fetch($login_stmt)) {
 							if (password_verify($login_password, $staff_saved_password)) {
@@ -54,8 +54,9 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 									}
 									
 									session_start();
-									
+                                    
 									$_SESSION['moov_portal_logged_in'] = TRUE;
+                                    $_SESSION['moov_portal_staff_account_id'] = $staff_account_id;
 									$_SESSION['moov_portal_staff_first_name'] = $staff_first_name;
 									$_SESSION['moov_portal_staff_email'] = $staff_email;
 									

@@ -224,7 +224,7 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 <body id="modifyAccount">
 	<?php include '../header.php'; ?>
 
-    <div class="container my-3">
+    <div class="container my-3 footer-align-bottom">
 		<h1 class="text-center">Staff Account Management</h1>
 		
 		<?php

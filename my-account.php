@@ -536,7 +536,7 @@ if (isset($_SESSION['moov_user_logged_in']) && $_SESSION['moov_user_logged_in'] 
 <body id="myProfile">
 	<?php include 'header.php'; ?>
     
-	<div class="container my-3">
+	<div class="container my-3 footer-align-bottom">
 		<h1 class="text-center">My Account</h1>
         
         <?php

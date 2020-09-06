@@ -1,4 +1,4 @@
-<div class="jumbotron jumbotron-fluid mt-5 text-center">
+<div class="jumbotron jumbotron-fluid text-center">
     <div class="container">
         <img src="/moov/assets/images/coming_soon_icon.svg" alt="Coming Soon">
 

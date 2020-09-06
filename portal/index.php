@@ -54,7 +54,7 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 <body>
 	<?php include 'header.php'; ?>
 
-    <div class="container my-3">
+    <div class="container my-3 footer-align-bottom">
 		<!-- Content starts here -->
 		
 		<?php require 'coming-soon.php'; ?>

@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 	}
 	
 	if (empty($login_email_address_err) && empty($login_password_err)) {
-		$user_login_sql = 'SELECT account_id, display_name, password, has_avatar, avatar_type, is_deleted, is_deactivated FROM account WHERE email_address = ?';
+		$user_login_sql = 'SELECT account_id, display_name, password, has_avatar, avatar_type, is_deleted, is_suspended FROM account WHERE email_address = ?';
 		
 		if ($user_login_stmt = mysqli_prepare($conn, $user_login_sql)) {
 			mysqli_stmt_bind_param($user_login_stmt, 's', $param_email_address);
@@ -129,7 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <body>
     <?php include 'header.php'; ?>
 
-    <div class="container my-3">
+    <div class="container my-3 footer-align-bottom">
 		<h1 class="text-center">Login</h1>
 		
 		<?php

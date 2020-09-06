@@ -48,7 +48,7 @@ $page_name = '';
 <body>
 	<?php include 'header.php'; ?>
     
-	<div class="container my-3">
+	<div class="container my-3 footer-align-bottom">
 		<!-- Content starts here -->
 		
 		<h1>Heading 1</h1>

@@ -57,3 +57,40 @@
     background-color: #edf5e1 !important;
 }
 /* END user avatar */
+
+/* START customer table search engine */
+#sortBy, #searchField, #searchSubmitButton {
+    width: 100% !important;
+}
+
+@media (min-width: 768px) {
+    #sortBy {
+        width: 15% !important;
+    }
+    
+    #searchField {
+        width: 60% !important;
+    }
+    
+    #searchSubmitButton {
+        width: auto !important;
+    }
+}
+
+@media (min-width: 992px) {
+    #searchField {
+        width: 70% !important;
+    }
+}
+/* END customer table search engine */
+
+/* START footer align bottom */
+.footer-align-bottom {
+    min-height: calc(100vh - 190px);
+}
+
+.footer {
+    height: 50px;
+}
+
+/* END footer align bottom */

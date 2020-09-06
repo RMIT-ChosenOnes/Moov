@@ -25,7 +25,7 @@
                     
                     <div class="dropdown-divider"></div>
                     
-					<a class="dropdown-item <?php echo isset($page_name) && $page_name == 'modify-customer' ? 'active' : ''; ?>" href="modify-customer">Modify Customer</a>
+					<a class="dropdown-item <?php echo isset($page_name) && $page_name == 'modify-customer' ? 'active' : ''; ?>" href="/moov/portal/database/modify-customer">Modify Customer</a>
 					
 					<?php
 					if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_in'] == TRUE && $_SESSION['moov_portal_staff_role'] == 'Admin') {
@@ -45,7 +45,7 @@
 				<a class="nav-link dropdown-toggle" href="/moov/portal/customer" id="customerDropDownMenu" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Customer</a>
 				
 				<div class="dropdown-menu" aria-labelledby="customerDropDownMenu">
-					<a class="dropdown-item <?php echo isset($page_name) && $page_name == 'modify-customer' ? 'active' : ''; ?>" href="modify-customer">Modify Customer</a>
+					<a class="dropdown-item <?php echo isset($page_name) && $page_name == 'modify-customer' ? 'active' : ''; ?>" href="/moov/portal/database/modify-customer">Modify Customer</a>
 				</div>
 			</li>
 

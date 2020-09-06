@@ -333,7 +333,7 @@ if (isset($_SESSION['moov_user_temp_register']) && $_SESSION['moov_user_temp_reg
 <body>
     <?php include 'header.php'; ?>
 
-   	<div class="container my-3">
+   	<div class="container my-3 footer-align-bottom">
 		<h1 class="text-center">Driver Profile</h1>
 		
 		<?php

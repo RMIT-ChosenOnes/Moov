@@ -99,3 +99,14 @@
     top: 4%;
 }
 /* END driving license */
+
+/* START footer align bottom */
+.footer-align-bottom {
+    min-height: calc(100vh - 190px);
+}
+
+.footer {
+    height: 50px;
+}
+
+/* END footer align bottom */

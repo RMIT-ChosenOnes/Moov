@@ -223,12 +223,12 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 </head>
 
 <body>
-	<?php include '../header.php'; ?>
+    <?php include '../header.php'; ?>
 
-    <div class="container my-3">		
-		<h1 class="text-center">Register New Staff</h1>
-		
-		<?php
+    <div class="container my-3 footer-align-bottom">		
+        <h1 class="text-center">Register New Staff</h1>
+
+        <?php
         if ($registered === TRUE) {
             echo '
             <div class="alert alert-success my-4 alert-dismissible fade show" role="alert">
@@ -240,8 +240,8 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
             </div>
             ';
         }
-		
-		if ($email_notification === TRUE) {
+
+        if ($email_notification === TRUE) {
             echo '
             <div class="alert alert-success my-4 alert-dismissible fade show" role="alert">
                 Email notification sent successfully.
@@ -252,184 +252,184 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
             </div>
             ';
         }
-		
-		if ($register_error === TRUE) {
-			echo '
-			<div class="alert alert-warning my-4 alert-dismissible fade show" role="alert">
-				Oops! There is an error occurred. Please try again later. If you continue to see this error, please contact the administrator.
 
-			' . (!empty($error_message) ? '<br/><br/><b>Error:</b> ' . $error_message : '') . '
+        if ($register_error === TRUE) {
+            echo '
+            <div class="alert alert-warning my-4 alert-dismissible fade show" role="alert">
+                Oops! There is an error occurred. Please try again later. If you continue to see this error, please contact the administrator.
 
-				<button type="button" class="close" data-dismiss="alert" aria-label="Close">
-					<span aria-hidden="true">&times;</span>
-				</button>
-			</div>
-			';
-		}
+            ' . (!empty($error_message) ? '<br/><br/><b>Error:</b> ' . $error_message : '') . '
+
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            ';
+        }
         ?>
-		
-		<form class="mt-5" action="<?php echo basename(htmlspecialchars($_SERVER['PHP_SELF']), '.php'); ?>" method="post" onSubmit="submitButton()">
-			<div class="form-group row">
-				<label for="staffRole" class="col-sm-2 col-form-label">Role</label>
-				
-				<div class="col-sm-10">
-					<select id="staffRole" class="form-control <?php echo !empty($staff_role_err) ? 'border border-danger' : ''; ?>" name="staffRole" onKeyUp="changeEventButton(this)">
-						<option value="0" selected>Select Staff's Role</option>
-						
-						<?php
-						$get_role_sql = 'SELECT * FROM portal_account_role ORDER BY role ASC';
+
+        <form class="mt-5" action="<?php echo basename(htmlspecialchars($_SERVER['PHP_SELF']), '.php'); ?>" method="post" onSubmit="submitButton()">
+            <div class="form-group row">
+                <label for="staffRole" class="col-sm-2 col-form-label">Role</label>
+
+                <div class="col-sm-10">
+                    <select id="staffRole" class="form-control <?php echo !empty($staff_role_err) ? 'border border-danger' : ''; ?>" name="staffRole" onKeyUp="changeEventButton(this)">
+                        <option value="0" selected>Select Staff's Role</option>
+
+                        <?php
+                        $get_role_sql = 'SELECT * FROM portal_account_role ORDER BY role ASC';
                         $get_role = mysqli_query($conn, $get_role_sql);
-                        
+
                         if (mysqli_num_rows($get_role) > 0) {
                             while ($role = mysqli_fetch_assoc($get_role)) {
                                 $selected_role = (isset($_POST['staffRole']) && $_POST['staffRole'] == $role['role_id']) ? ' selected="selected"' : '';
-                                
+
                                 echo '<option value="' . $role['role_id'] . '"' . $selected_role . '>' . $role['role'] . '</option>';
                             }
-                            
+
                             mysqli_free_result($get_role);
                         }
-						?>
-					</select>
-					
-					<?php
-					if (isset($staff_role_err) && !empty($staff_role_err)) {
-						echo '<p class="text-danger mb-0">' . $staff_role_err . '</p>';
-						
-					}
-					?>
-				</div>
-			</div>
-			
-			<div class="row mt-4">
-				<div class="form-group col-md-6">
-					<label for="staffFirstName">First Name</label>
-					
-					<input type="text" class="form-control <?php echo !empty($staff_first_name_err) ? 'border border-danger' : ''; ?>" id="staffFirstName" name="staffFirstName" value="<?php echo $_POST['staffFirstName']; ?>" onKeyUp="changeEventButton(this)">
-					
-					<?php
-					if (isset($staff_first_name_err) && !empty($staff_first_name_err)) {
-						echo '<p class="text-danger mb-0">' . $staff_first_name_err . '</p>';
-						
-					}
-					?>
-				</div>
-				
-				<div class="form-group col-md-6">
-					<label for="staffLastName">Last Name</label>
-					
-					<input type="text" class="form-control <?php echo !empty($staff_last_name_err) ? 'border border-danger' : ''; ?>" id="staffLastName" name="staffLastName" value="<?php echo $_POST['staffLastName']; ?>" onKeyUp="changeEventButton(this)">
-					
-					<?php
-					if (isset($staff_last_name_err) && !empty($staff_last_name_err)) {
-						echo '<p class="text-danger mb-0">' . $staff_last_name_err . '</p>';
-						
-					}
-					?>
-				</div>
-			</div>
-			
-			<div class="row mt-2">
-				<div class="form-group col-md-6">
-					<label for="staffUsername">Username</label>
-					
-					<input type="text" class="form-control <?php echo !empty($staff_username_err) ? 'border border-danger' : ''; ?>" id="staffUsername" name="staffUsername" aria-describedby="usernameInfo" value="<?php echo $_POST['staffUsername']; ?>" onKeyUp="changeEventButton(this)">
-					
-					<?php
-					if (isset($staff_username_err) && !empty($staff_username_err)) {
-						echo '<p class="text-danger mb-0">' . $staff_username_err . '</p>';
-						
-					} else {
-						echo '<small id="usernameInfo" class="form-text text-muted">Format: firstname.lastname. Username can\'t be changed after registration.</small>';
-						
-					}
-					?>
-				</div>
-				
-				<div class="form-group col-md-6">
-					<label for="staffEmailAddress">Email Address</label>
-					
-					<input type="email" class="form-control <?php echo !empty($staff_email_address_err) ? 'border border-danger' : ''; ?>" id="staffEmailAddress" name="staffEmailAddress" value="<?php echo $_POST['staffEmailAddress']; ?>" onKeyUp="changeEventButton(this)">
-					
-					<?php
-					if (isset($staff_email_address_err) && !empty($staff_email_address_err)) {
-						echo '<p class="text-danger mb-0">' . $staff_email_address_err . '</p>';
-						
-					}
-					?>
-				</div>
-			</div>
-			
-			<div class="row mt-2">
-				<div class="form-group col-md-6">
-					<label for="staffPassword">Password</label>
-					
-					<input type="password" class="form-control <?php echo !empty($staff_password_err) ? 'border border-danger' : ''; ?>" id="staffPassword" name="staffPassword" aria-describedby="passwordInfo" value="<?php echo $_POST['staffPassword']; ?>" onKeyUp="changeEventButton(this)">
-					
-					<?php
-					if (isset($staff_password_err) && !empty($staff_password_err)) {
-						echo '<p class="text-danger mb-0">' . $staff_password_err . '</p>';
+                        ?>
+                    </select>
 
-					} else {
-						echo '<small id="passwordInfo" class="form-text text-muted">Minimum 8 characters, must contain at least 1 uppercase letter, 1 lowercase letter, 1 number digit, and 1 special character.</small>';
+                    <?php
+                    if (isset($staff_role_err) && !empty($staff_role_err)) {
+                        echo '<p class="text-danger mb-0">' . $staff_role_err . '</p>';
 
-					}
-					?>
-				</div>
-				
-				<div class="form-group col-md-6">
-					<label for="staffConfirmPassword">Confirm Password</label>
-					
-					<input type="password" class="form-control <?php echo !empty($staff_confirm_password_err) ? 'border border-danger' : ''; ?>" id="staffConfirmPassword" name="staffConfirmPassword" value="<?php echo $_POST['staffConfirmPassword']; ?>" onKeyUp="changeEventButton(this)">
-					
-					<?php
-					if (isset($staff_confirm_password_err) && !empty($staff_confirm_password_err)) {
-						echo '<p class="text-danger mb-0">' . $staff_confirm_password_err . '</p>';
-						
-					}
-					?>
-				</div>
-			</div>
-			
-			<div class="form-group form-check mt-2">
-				<input type="checkbox" class="form-check-input" id="staffNotify" name="staffNotify" <?php echo (isset($_POST['staffNotify']) && $_POST['staffNotify'] == 'on') ? 'checked' : $checked_notify == TRUE ? 'checked' : ($_SERVER['REQUEST_METHOD'] == 'POST' && !isset($_POST['staffNotify']) ? '' : 'checked'); ?> onKeyUp="changeEventButton(this)">
-				
-				<label class="form-check-label" for="staffNotify">Notify staff via email</label>
-			</div>
-			
-			<button id="registerSubmitButton" type="submit" class="btn btn-primary btn-block mt-5">
-				<span id="submitButton">Register</span>
-					
-				<img id="processingIcon" src="/moov/assets/images/processing_icon.svg" class="processing-icon d-none">
-				<span id="processingButton" class="d-none">Processing...</span>
-			</button>
-		</form>
-		
-		<script>
-			function submitButton() {
-				document.getElementById('registerSubmitButton').disabled = true;
-				document.getElementById('submitButton').classList.add('d-none');
-				document.getElementById('processingIcon').classList.add('d-inline-block');
-				document.getElementById('processingIcon').classList.remove('d-none');
-				document.getElementById('processingButton').classList.remove('d-none');
+                    }
+                    ?>
+                </div>
+            </div>
 
-			}
+            <div class="row mt-4">
+                <div class="form-group col-md-6">
+                    <label for="staffFirstName">First Name</label>
 
-			function changeEventButton(event) {
-				if (event.keyCode == 13) {
-					event.preventDefault;
+                    <input type="text" class="form-control <?php echo !empty($staff_first_name_err) ? 'border border-danger' : ''; ?>" id="staffFirstName" name="staffFirstName" value="<?php echo $_POST['staffFirstName']; ?>" onKeyUp="changeEventButton(this)">
 
-					document.getElementById('registerSubmitButton').disabled = true;
-					document.getElementById('submitButton').classList.add('d-none');
-					document.getElementById('processingIcon').classList.add('d-inline-block');
-					document.getElementById('processingIcon').classList.remove('d-none');
-					document.getElementById('processingButton').classList.remove('d-none');
+                    <?php
+                    if (isset($staff_first_name_err) && !empty($staff_first_name_err)) {
+                        echo '<p class="text-danger mb-0">' . $staff_first_name_err . '</p>';
 
-				}
-			}
-		</script>
-	</div>
+                    }
+                    ?>
+                </div>
 
+                <div class="form-group col-md-6">
+                    <label for="staffLastName">Last Name</label>
+
+                    <input type="text" class="form-control <?php echo !empty($staff_last_name_err) ? 'border border-danger' : ''; ?>" id="staffLastName" name="staffLastName" value="<?php echo $_POST['staffLastName']; ?>" onKeyUp="changeEventButton(this)">
+
+                    <?php
+                    if (isset($staff_last_name_err) && !empty($staff_last_name_err)) {
+                        echo '<p class="text-danger mb-0">' . $staff_last_name_err . '</p>';
+
+                    }
+                    ?>
+                </div>
+            </div>
+
+            <div class="row mt-2">
+                <div class="form-group col-md-6">
+                    <label for="staffUsername">Username</label>
+
+                    <input type="text" class="form-control <?php echo !empty($staff_username_err) ? 'border border-danger' : ''; ?>" id="staffUsername" name="staffUsername" aria-describedby="usernameInfo" value="<?php echo $_POST['staffUsername']; ?>" onKeyUp="changeEventButton(this)">
+
+                    <?php
+                    if (isset($staff_username_err) && !empty($staff_username_err)) {
+                        echo '<p class="text-danger mb-0">' . $staff_username_err . '</p>';
+
+                    } else {
+                        echo '<small id="usernameInfo" class="form-text text-muted">Format: firstname.lastname. Username can\'t be changed after registration.</small>';
+
+                    }
+                    ?>
+                </div>
+
+                <div class="form-group col-md-6">
+                    <label for="staffEmailAddress">Email Address</label>
+
+                    <input type="email" class="form-control <?php echo !empty($staff_email_address_err) ? 'border border-danger' : ''; ?>" id="staffEmailAddress" name="staffEmailAddress" value="<?php echo $_POST['staffEmailAddress']; ?>" onKeyUp="changeEventButton(this)">
+
+                    <?php
+                    if (isset($staff_email_address_err) && !empty($staff_email_address_err)) {
+                        echo '<p class="text-danger mb-0">' . $staff_email_address_err . '</p>';
+
+                    }
+                    ?>
+                </div>
+            </div>
+
+            <div class="row mt-2">
+                <div class="form-group col-md-6">
+                    <label for="staffPassword">Password</label>
+
+                    <input type="password" class="form-control <?php echo !empty($staff_password_err) ? 'border border-danger' : ''; ?>" id="staffPassword" name="staffPassword" aria-describedby="passwordInfo" value="<?php echo $_POST['staffPassword']; ?>" onKeyUp="changeEventButton(this)">
+
+                    <?php
+                    if (isset($staff_password_err) && !empty($staff_password_err)) {
+                        echo '<p class="text-danger mb-0">' . $staff_password_err . '</p>';
+
+                    } else {
+                        echo '<small id="passwordInfo" class="form-text text-muted">Minimum 8 characters, must contain at least 1 uppercase letter, 1 lowercase letter, 1 number digit, and 1 special character.</small>';
+
+                    }
+                    ?>
+                </div>
+
+                <div class="form-group col-md-6">
+                    <label for="staffConfirmPassword">Confirm Password</label>
+
+                    <input type="password" class="form-control <?php echo !empty($staff_confirm_password_err) ? 'border border-danger' : ''; ?>" id="staffConfirmPassword" name="staffConfirmPassword" value="<?php echo $_POST['staffConfirmPassword']; ?>" onKeyUp="changeEventButton(this)">
+
+                    <?php
+                    if (isset($staff_confirm_password_err) && !empty($staff_confirm_password_err)) {
+                        echo '<p class="text-danger mb-0">' . $staff_confirm_password_err . '</p>';
+
+                    }
+                    ?>
+                </div>
+            </div>
+
+            <div class="form-group form-check mt-2">
+                <input type="checkbox" class="form-check-input" id="staffNotify" name="staffNotify" <?php echo (isset($_POST['staffNotify']) && $_POST['staffNotify'] == 'on') ? 'checked' : $checked_notify == TRUE ? 'checked' : ($_SERVER['REQUEST_METHOD'] == 'POST' && !isset($_POST['staffNotify']) ? '' : 'checked'); ?> onKeyUp="changeEventButton(this)">
+
+                <label class="form-check-label" for="staffNotify">Notify staff via email</label>
+            </div>
+
+            <button id="registerSubmitButton" type="submit" class="btn btn-primary btn-block mt-5">
+                <span id="submitButton">Register</span>
+
+                <img id="processingIcon" src="/moov/assets/images/processing_icon.svg" class="processing-icon d-none">
+                <span id="processingButton" class="d-none">Processing...</span>
+            </button>
+        </form>
+
+        <script>
+            function submitButton() {
+                document.getElementById('registerSubmitButton').disabled = true;
+                document.getElementById('submitButton').classList.add('d-none');
+                document.getElementById('processingIcon').classList.add('d-inline-block');
+                document.getElementById('processingIcon').classList.remove('d-none');
+                document.getElementById('processingButton').classList.remove('d-none');
+
+            }
+
+            function changeEventButton(event) {
+                if (event.keyCode == 13) {
+                    event.preventDefault;
+
+                    document.getElementById('registerSubmitButton').disabled = true;
+                    document.getElementById('submitButton').classList.add('d-none');
+                    document.getElementById('processingIcon').classList.add('d-inline-block');
+                    document.getElementById('processingIcon').classList.remove('d-none');
+                    document.getElementById('processingButton').classList.remove('d-none');
+
+                }
+            }
+        </script>
+    </div>
+    
     <?php include '../footer.php'; ?>
 </body>
 	

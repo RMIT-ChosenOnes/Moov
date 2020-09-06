@@ -164,7 +164,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     <?php include 'header.php'; ?>
 
-    <div class="container my-3">
+    <div class="container my-3 footer-align-bottom">
 		<h1 class="text-center">Reset Your New Password</h1>
 		
 		<?php
