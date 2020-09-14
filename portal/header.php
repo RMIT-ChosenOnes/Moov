@@ -14,65 +14,50 @@
 			</li>
 			
 			<li class="nav-item <?php echo isset($page_name) && $page_name == 'bookings' ? 'active' : ''; ?>">
-				<a class="nav-link" href="bookings">Bookings</a>
+				<a class="nav-link disabled" href="bookings">Bookings</a>
 			</li>
 			
 			<li class="nav-item dropdown <?php echo isset($parent_page_name) && $parent_page_name == 'database' ? 'active' : ''; ?>">
-				<a class="nav-link dropdown-toggle" href="/moov/portal/database" id="databaseDropDownMenu" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Database</a>
+				<a class="nav-link dropdown-toggle" href="/moov/portal/car/" id="databaseDropDownMenu" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Car</a>
 				
 				<div class="dropdown-menu" aria-labelledby="databaseDropDownMenu">
-					<a class="dropdown-item" href="">Car</a>
-                    
-                    <div class="dropdown-divider"></div>
-                    
-					<a class="dropdown-item <?php echo isset($page_name) && $page_name == 'modify-customer' ? 'active' : ''; ?>" href="/moov/portal/database/modify-customer">Modify Customer</a>
-					
-					<?php
-					if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_in'] == TRUE && $_SESSION['moov_portal_staff_role'] == 'Admin') {
-						echo '
-						<div class="dropdown-divider"></div>
-					
-						<h6 class="dropdown-header">Staff <span class="text-danger">(ADMIN ONLY)</span></h6>
-						<a class="dropdown-item ' . (isset($page_name) && $page_name == 'new-staff' ? 'active' : '') . '" href="/moov/portal/database/new-staff">Register New Staff</a>
-						<a class="dropdown-item ' . (isset($page_name) && $page_name == 'modify-staff' ? 'active' : '') . '" href="/moov/portal/database/modify-staff">Modify Staff</a>
-						';
-					}
-					?>
+					<a class="dropdown-item disabled" href="">Register New Car</a>
+                    <a class="dropdown-item disabled" href="">Modify Car</a>
 				</div>
 			</li>
             
-            <li class="nav-item dropdown <?php echo isset($parent_page_name) && $parent_page_name == 'customer' ? 'active' : ''; ?>">
-				<a class="nav-link dropdown-toggle" href="/moov/portal/customer" id="customerDropDownMenu" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Customer</a>
-				
-				<div class="dropdown-menu" aria-labelledby="customerDropDownMenu">
-					<a class="dropdown-item <?php echo isset($page_name) && $page_name == 'modify-customer' ? 'active' : ''; ?>" href="/moov/portal/database/modify-customer">Modify Customer</a>
-				</div>
+            <li class="nav-item <?php echo isset($page_name) && $page_name == 'customer' ? 'active' : ''; ?>">
+				<a class="nav-link" href="/moov/portal/customer/">Customer</a>
 			</li>
 
             <?php
             if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_in'] == TRUE && $_SESSION['moov_portal_staff_role'] == 'Admin') {
                 echo '
                 <li class="nav-item dropdown ' . (isset($parent_page_name) && $parent_page_name == 'staff' ? 'active' : '') . '">
-				    <a class="nav-link dropdown-toggle" href="/moov/portal/database" id="staffDropDownMenu" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Staff</a>
+				    <a class="nav-link dropdown-toggle" href="/moov/portal/staff/" id="staffDropDownMenu" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Staff</a>
                     
                     <div class="dropdown-menu" aria-labelledby="staffDropDownMenu">
-                        <a class="dropdown-item ' . (isset($page_name) && $page_name == 'new-staff' ? 'active' : '') . '" href="/moov/portal/database/new-staff">Register New Staff</a>
-                        <a class="dropdown-item ' . (isset($page_name) && $page_name == 'modify-staff' ? 'active' : '') . '" href="/moov/portal/database/modify-staff">Modify Staff</a>
+                        <a class="dropdown-item ' . (isset($page_name) && $page_name == 'new-staff' ? 'active' : '') . '" href="/moov/portal/staff/new-staff">Register New Staff</a>
+                        <a class="dropdown-item ' . (isset($page_name) && $page_name == 'staff' ? 'active' : '') . '" href="/moov/portal/staff/">Modify Staff</a>
                     </div>
                 </li>
                 ';
             }
             ?>
 			
-			<li class="nav-item <?php echo isset($page_name) && $page_name == 'reports' ? 'active' : ''; ?>">
-				<a class="nav-link" href="reports">Reports</a>
+			<li class="nav-item dropdown <?php echo isset($parent_page_name) && $parent_page_name == 'database' ? 'active' : ''; ?>">
+				<a class="nav-link dropdown-toggle" href="/moov/portal/database" id="databaseDropDownMenu" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Report</a>
+				
+				<div class="dropdown-menu" aria-labelledby="databaseDropDownMenu">
+					<a class="dropdown-item disabled" href="">Car Report</a>
+				</div>
 			</li>
 			
 			<li class="nav-item dropdown d-block d-lg-none">
-				<a class="nav-link dropdown-toggle" href="/moov/portal/" id="portalStaffDropDownMenu" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">G'day, <?php echo $_SESSION['moov_portal_staff_first_name']; ?></a>
+				<a class="nav-link dropdown-toggle <?php echo isset($parent_page_name) && $parent_page_name == 'profile' ? 'active' : ''; ?>" href="/moov/portal/" id="portalStaffDropDownMenu" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">G'day, <?php echo $_SESSION['moov_portal_staff_first_name']; ?></a>
 
 				<div class="dropdown-menu dropdown-menu-right" aria-labelledby="portalStaffDropDownMenu">
-					<a class="dropdown-item" href="/moov/portal/modify-account">Modify My Account</a>
+					<a class="dropdown-item <?php echo isset($page_name) && $page_name == 'my-account' ? 'active' : ''; ?>" href="/moov/portal/my-account">My Account</a>
 					<a class="dropdown-item" href="/moov/portal/logout">Logout</a>
 				</div>
 			</li>
@@ -82,10 +67,10 @@
 	<div class="d-none d-lg-block">
 		<ul class="navbar-nav float-right">
 			<li class="nav-item dropdown">
-				<a class="nav-link dropdown-toggle" href="/moov/portal/logout" id="portalStaffDropDownMenu" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">G'day, <?php echo $_SESSION['moov_portal_staff_first_name']; ?></a>
+				<a class="nav-link dropdown-toggle <?php echo isset($parent_page_name) && $parent_page_name == 'profile' ? 'active' : ''; ?>" href="/moov/portal/logout" id="portalStaffDropDownMenu" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">G'day, <?php echo $_SESSION['moov_portal_staff_first_name']; ?></a>
 
 				<div class="dropdown-menu dropdown-menu-right" aria-labelledby="portalStaffDropDownMenu">
-					<a class="dropdown-item" href="/moov/portal/modify-account">Modify My Account</a>
+					<a class="dropdown-item <?php echo isset($page_name) && $page_name == 'my-account' ? 'active' : ''; ?>" href="/moov/portal/my-account">My Account</a>
 					<a class="dropdown-item" href="/moov/portal/logout">Logout</a>
 				</div>
 			</li>

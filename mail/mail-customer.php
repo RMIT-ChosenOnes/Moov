@@ -13,7 +13,7 @@ try {
 	$mail->SMTPSecure   = PHPMailer::ENCRYPTION_STARTTLS;
 	$mail->Port         = 587;
 	$mail->Username     = 'moov.adm@outlook.com';
-	$mail->Password     = 'cegbor-9qeqwa-Dirjef';
+	$mail->Password     = 'xyfWig-pohzab-0xuxmo';
 
 	// Recipients
 	$mail->setFrom('moov.adm@outlook.com', 'Moov');

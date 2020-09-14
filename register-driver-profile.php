@@ -173,7 +173,7 @@ if (isset($_SESSION['moov_user_temp_register']) && $_SESSION['moov_user_temp_reg
 
 					}
 				} elseif ($dl_state_of_issue == 'sa') {
-					if (preg_match('/^[A-Z]{1}[0-9]{5}$/', strtoupper(trim($_POST['dlLicenseNumber'])))) {
+					if (preg_match('/^[A-Z]{1,2}[0-9]{4,5}$/', strtoupper(trim($_POST['dlLicenseNumber'])))) {
 						$dl_license_number = strtoupper(trim($_POST['dlLicenseNumber']));
 
 					} else {

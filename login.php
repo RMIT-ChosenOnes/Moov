@@ -127,13 +127,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 </head>
 
 <body>
-    <?php include 'header.php'; ?>
+    <?php //include 'header.php'; ?>
 
     <div class="container my-3 footer-align-bottom">
 		<h1 class="text-center">Login</h1>
 		
 		<?php
-		if ($_SESSION['moov_user_registration_success'] === TRUE) {
+		/*if ($_SESSION['moov_user_registration_success'] === TRUE) {
             echo '
             <div class="alert alert-success my-4 alert-dismissible fade show" role="alert">
                 Account registered successfully. You can now login with your login credentials.
@@ -187,7 +187,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 </button>
             </div>
             ';
-        }
+        }*/
         ?>
 		
 		<div class="container bg-secondary pt-4 pb-2 rounded">
