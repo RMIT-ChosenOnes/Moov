@@ -59,7 +59,7 @@
 /* END user avatar */
 
 /* START customer table search engine */
-#sortBy, #searchField, #searchSubmitButton {
+#sortBy, #searchField {
     width: 100% !important;
 }
 
@@ -70,10 +70,6 @@
     
     #searchField {
         width: 60% !important;
-    }
-    
-    #searchSubmitButton {
-        width: auto !important;
     }
 }
 
@@ -95,8 +91,8 @@
 
 /* END footer align bottom */
 
-/* START staff avatar */
-.staff-avatar {
+/* START staff avatar & car image */
+.staff-avatar, .car-image {
 	background-size: cover !important;
 	width: 250px;
 	height: 250px;
@@ -105,4 +101,36 @@
     background-position: center !important;
     background-color: #edf5e1 !important;
 }
-/* END staff avatar */
+
+.car-image {
+    width: 500px !important;
+    height: 300px !important;
+}
+/* END staff avatar & car image */
+
+/* START hide number input selector */
+/* Chrome, Safari, Edge, Opera */
+.number-hide::-webkit-outer-spin-button,
+.number-hide::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Firefox */
+.number-hide[type=number] {
+    -moz-appearance: textfield;
+}
+/* END hide number input selector */
+
+/* START car image upload button */
+#carImageUpload {
+    width: 500px !important;
+    text-align: left !important;
+}
+
+@media (min-width: 768px) {
+    #carImageUpload {
+        text-align: center !important;
+    }
+}
+/* END car image upload button */

@@ -127,13 +127,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 </head>
 
 <body>
-    <?php //include 'header.php'; ?>
+    <?php include 'header.php'; ?>
 
     <div class="container my-3 footer-align-bottom">
 		<h1 class="text-center">Login</h1>
 		
 		<?php
-		/*if ($_SESSION['moov_user_registration_success'] === TRUE) {
+		if ($_SESSION['moov_user_registration_success'] === TRUE) {
             echo '
             <div class="alert alert-success my-4 alert-dismissible fade show" role="alert">
                 Account registered successfully. You can now login with your login credentials.
@@ -187,12 +187,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 </button>
             </div>
             ';
-        }*/
+        }
         ?>
 		
 		<div class="container bg-secondary pt-4 pb-2 rounded">
 			<form action="<?php echo basename(htmlspecialchars($_SERVER['PHP_SELF']), '.php'); ?>" method="post" onSubmit="submitButton()">
-                <input type="hidden" id="referrerUrl" name="referrerUrl" value="<?php echo $_GET['url'] . $_POST['referrerUrl'] ?>">
+                <input type="hidden" id="referrerUrl" name="referrerUrl" value="<?php //echo $_GET['url'] . $_POST['referrerUrl']; ?>">
                 
 				<div class="form-group row align-items-center">
 					<label for="loginEmailAddress" class="col-sm-3 col-form-label">Email Address</label>

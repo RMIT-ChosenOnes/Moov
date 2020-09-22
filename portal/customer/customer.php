@@ -135,7 +135,7 @@ if (!isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_
         }
 
         $record_number = 1;
-        $record_per_page = 50;
+        $record_per_page = 20;
         $offset = ($current_page - 1) * $record_per_page;
             
         $get_customer_list_sql = 'SELECT account_id, first_name, last_name, display_name, email_address, contact_number, is_suspended FROM moov.account WHERE is_deleted = ? AND (first_name LIKE ? OR last_name LIKE ? OR display_name LIKE ? OR email_address LIKE ?) ORDER BY ' . ((isset($_GET['sort']) && !empty($_GET['sort'])) ? $_GET['sort'] : 'first_name') . ' ASC LIMIT ?, ?';
@@ -252,7 +252,7 @@ if (!isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_
                 </li>
 
                 <?php
-                for ($page_number = max(1, $current_page - 2); $page_number <= min($current_page + 5, $total_pages); $page_number++) {
+                for ($page_number = max(1, min($current_page - 2, $total_pages - 4)); $page_number <= min(max($current_page + 2, 5), $total_pages); $page_number++) {
                     echo '
                     <li class="page-item ' . (($page_number == $current_page) ? 'active' : '') . '">
                         <a class="page-link" href="?page=' . $page_number . $search_engine_url . '">' . $page_number . '</a>

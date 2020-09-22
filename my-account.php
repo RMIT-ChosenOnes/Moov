@@ -110,9 +110,9 @@ if (isset($_SESSION['moov_user_logged_in']) && $_SESSION['moov_user_logged_in'] 
             }
 
             if (isset($_FILES['userAvatar']) && $_FILES['userAvatar']['name'] != '') {
-                $img_file_name = basename($_FILES["userAvatar"]["name"]);
+                $img_file_name = basename($_FILES['userAvatar']['name']);
                 $img_file_type = strtolower(pathinfo($img_file_name, PATHINFO_EXTENSION));
-
+                
                 if ($_FILES['userAvatar']['size'] > 5000000) {
                     $user_avatar_err = 'Sorry. Your file is too big. Maximum file size is 5MB. Please try again.';
 
@@ -121,8 +121,8 @@ if (isset($_SESSION['moov_user_logged_in']) && $_SESSION['moov_user_logged_in'] 
 
                 } else {
                     $user_avatar = $user_avatar_save_directory . 'avatar_' . $_SESSION['moov_user_account_id'] . '.' . $img_file_type;
-
-                    if(move_uploaded_file($_FILES['userAvatar']['tmp_name'], $user_avatar)) {
+                    
+                    if (move_uploaded_file($_FILES['userAvatar']['tmp_name'], $user_avatar)) {
                         $user_avatar_status = 1;
                         $user_avatar_type = $img_file_type;
                         $uploaded_avatar = TRUE;
@@ -540,7 +540,7 @@ if (isset($_SESSION['moov_user_logged_in']) && $_SESSION['moov_user_logged_in'] 
 		<h1 class="text-center">My Account</h1>
         
         <?php
-        if ($_SESSION['moov_user_license_expired'] === TRUE) {
+        if (isset($_SESSION['moov_user_license_expired']) && $_SESSION['moov_user_license_expired'] === TRUE) {
             echo '
             <div class="alert alert-warning my-4 alert-dismissible fade show" role="alert">
                 Your driver license is expired. Please update your new driver license before you can continue to book a car.
@@ -552,7 +552,7 @@ if (isset($_SESSION['moov_user_logged_in']) && $_SESSION['moov_user_logged_in'] 
             ';
         }
         
-		if ($update_error === TRUE) {
+		if (isset($update_error) && $update_error === TRUE) {
             echo '
             <div class="alert alert-warning my-4 alert-dismissible fade show" role="alert">
                 Oops! There is an error occurred. Please try again later. If you continue to see this error, please contact us immediately.
@@ -566,7 +566,7 @@ if (isset($_SESSION['moov_user_logged_in']) && $_SESSION['moov_user_logged_in'] 
             ';
         }
         
-        if ($delete_error === TRUE) {
+        if (isset($delete_error) && $delete_error === TRUE) {
             echo '
             <div class="alert alert-warning my-4 alert-dismissible fade show" role="alert">
                 Oops! There is an error occurred. We can\'t proceed with your request now.
@@ -580,7 +580,7 @@ if (isset($_SESSION['moov_user_logged_in']) && $_SESSION['moov_user_logged_in'] 
             ';
         }
         
-        if ($uploaded_avatar === TRUE) {
+        if (isset($uploaded_avatar) && $uploaded_avatar === TRUE) {
             echo '
             <div class="alert alert-success my-4 alert-dismissible fade show" role="alert">
                 Your avatar uploaded successfully.
@@ -592,7 +592,7 @@ if (isset($_SESSION['moov_user_logged_in']) && $_SESSION['moov_user_logged_in'] 
             ';
         }
         
-        if ($removed_avatar === TRUE) {
+        if (isset($removed_avatar) && $removed_avatar === TRUE) {
             echo '
             <div class="alert alert-success my-4 alert-dismissible fade show" role="alert">
                 Your avatar removed successfully.
@@ -604,7 +604,7 @@ if (isset($_SESSION['moov_user_logged_in']) && $_SESSION['moov_user_logged_in'] 
             ';
         }
         
-        if ($updated === TRUE) {
+        if (isset($updated) && $updated === TRUE) {
             echo '
             <div class="alert alert-success my-4 alert-dismissible fade show" role="alert">
                 Account details updated successfully.
@@ -616,7 +616,7 @@ if (isset($_SESSION['moov_user_logged_in']) && $_SESSION['moov_user_logged_in'] 
             ';
         }
         
-        if ($dl_updated === TRUE) {
+        if (isset($dl_updated) && $dl_updated === TRUE) {
             echo '
             <div class="alert alert-success my-4 alert-dismissible fade show" role="alert">
                 Your new driver license is updated successfully.
@@ -707,8 +707,6 @@ if (isset($_SESSION['moov_user_logged_in']) && $_SESSION['moov_user_logged_in'] 
 
 									}
 									?>
-                                    
-                                    
 								</div>
                                 
                                 <button id="removeAvatarButton" type="submit" class="btn btn-secondary btn-block mt-5" name="removeAvatar">Delete My Avatar</button>
