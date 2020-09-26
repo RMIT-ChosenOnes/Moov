@@ -23,8 +23,8 @@
 				<a class="nav-link" href="about-us">About Us</a>
 			</li>
 			
-			<li class="nav-item <?php echo isset($page_name) && $page_name == 'find car' ? 'active' : ''; ?>">
-				<a class="nav-link" href="book">Find a Car</a>
+			<li class="nav-item <?php echo isset($page_name) && $page_name == 'find-cars' ? 'active' : ''; ?>">
+				<a class="nav-link" href="find-cars">Find Cars</a>
 			</li>
 			
 			<li class="nav-item <?php echo isset($page_name) && $page_name == 'support' ? 'active' : ''; ?>">

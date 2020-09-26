@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="30" height="30" viewBox="0 0 30 30">
+  <defs>
+    <clipPath id="clip-Search_Icon_1">
+      <rect width="30" height="30"/>
+    </clipPath>
+  </defs>
+  <g id="Search_Icon_1" data-name="Search_Icon – 1" clip-path="url(#clip-Search_Icon_1)">
+    <g id="_070-list" data-name="070-list" transform="translate(-9.45 1)">
+      <g id="Group_234" data-name="Group 234" transform="translate(20.882 12.933)">
+        <g id="Group_233" data-name="Group 233">
+          <path id="Path_138" data-name="Path 138" d="M144.845,161.8h-14.6a.8.8,0,0,0,0,1.6h14.6a.8.8,0,0,0,0-1.6Z" transform="translate(-129.45 -161.8)" fill="#fff"/>
+        </g>
+      </g>
+      <g id="Group_236" data-name="Group 236" transform="translate(11.45 10.015)">
+        <g id="Group_235" data-name="Group 235">
+          <path id="Path_139" data-name="Path 139" d="M15.167,125.3a3.717,3.717,0,1,0,3.717,3.717A3.715,3.715,0,0,0,15.167,125.3Zm0,5.835a2.118,2.118,0,1,1,2.118-2.118A2.117,2.117,0,0,1,15.167,131.135Z" transform="translate(-11.45 -125.3)" fill="#fff"/>
+        </g>
+      </g>
+      <g id="Group_238" data-name="Group 238" transform="translate(20.882 2.941)">
+        <g id="Group_237" data-name="Group 237">
+          <path id="Path_140" data-name="Path 140" d="M144.845,36.8h-14.6a.8.8,0,1,0,0,1.6h14.6a.8.8,0,1,0,0-1.6Z" transform="translate(-129.45 -36.8)" fill="#fff"/>
+        </g>
+      </g>
+      <g id="Group_240" data-name="Group 240" transform="translate(11.45)">
+        <g id="Group_239" data-name="Group 239">
+          <path id="Path_141" data-name="Path 141" d="M15.167,0a3.717,3.717,0,1,0,3.717,3.717A3.715,3.715,0,0,0,15.167,0Zm0,5.843a2.118,2.118,0,1,1,2.118-2.118A2.117,2.117,0,0,1,15.167,5.843Z" transform="translate(-11.45)" fill="#fff"/>
+        </g>
+      </g>
+      <g id="Group_242" data-name="Group 242" transform="translate(20.882 22.924)">
+        <g id="Group_241" data-name="Group 241">
+          <path id="Path_142" data-name="Path 142" d="M144.845,286.8h-14.6a.8.8,0,1,0,0,1.6h14.6a.8.8,0,1,0,0-1.6Z" transform="translate(-129.45 -286.8)" fill="#fff"/>
+        </g>
+      </g>
+      <g id="Group_244" data-name="Group 244" transform="translate(11.45 20.023)">
+        <g id="Group_243" data-name="Group 243">
+          <path id="Path_143" data-name="Path 143" d="M15.167,250.5a3.717,3.717,0,1,0,3.717,3.717A3.715,3.715,0,0,0,15.167,250.5Zm0,5.843a2.118,2.118,0,1,1,2.118-2.118A2.117,2.117,0,0,1,15.167,256.343Z" transform="translate(-11.45 -250.5)" fill="#fff"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

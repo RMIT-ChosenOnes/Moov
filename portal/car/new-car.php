@@ -377,10 +377,10 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
             $car_temp_image_name = strtolower($brand . '_' . $car_model . '_' . $car_friendly_name);
             $car_image_name = str_replace($search_filename, $replace_filename, $car_temp_image_name);
 
-            $register_new_car_sql = 'INSERT INTO car (name, brand, model, registration_number, car_type, price_per_hour, seat, manufacture_year, color, door, transmission_type, fuel_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+            $register_new_car_sql = 'INSERT INTO car (name, brand, model, registration_number, car_type, price_per_hour, seat, manufacture_year, color, door, transmission_type, fuel_type, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
             
             if ($register_new_car_stmt = mysqli_prepare($conn, $register_new_car_sql)) {
-                mysqli_stmt_bind_param($register_new_car_stmt, 'sissisissiii', $param_car_friendly_name, $param_brand_id, $param_car_model, $param_car_registration_number, $param_car_type, $param_car_price_per_hour, $param_car_seat, $param_car_manufacture_year, $param_car_color, $param_car_door, $param_car_transmission_type, $param_car_fuel_type);
+                mysqli_stmt_bind_param($register_new_car_stmt, 'sissisissiiii', $param_car_friendly_name, $param_brand_id, $param_car_model, $param_car_registration_number, $param_car_type, $param_car_price_per_hour, $param_car_seat, $param_car_manufacture_year, $param_car_color, $param_car_door, $param_car_transmission_type, $param_car_fuel_type, $param_created_staff_id);
                 
                 $param_car_friendly_name = $car_friendly_name;
                 $param_car_model = $car_model;
@@ -393,6 +393,7 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
                 $param_car_door = $car_doors;
                 $param_car_transmission_type = $car_transmission_type;
                 $param_car_fuel_type = $car_fuel_type;
+                $param_created_staff_id = $_SESSION['moov_portal_staff_account_id'];
                 
                 if (mysqli_stmt_execute($register_new_car_stmt)) {
                     $new_car_id = mysqli_insert_id($conn);

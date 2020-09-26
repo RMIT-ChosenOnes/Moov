@@ -35,7 +35,7 @@
 /* END processing icon */
 
 /* START user avatar */
-.user-avatar {
+.user-avatar, .car-image {
 	background-size: cover !important;
 	width: 250px;
 	height: 250px;
@@ -56,6 +56,11 @@
 
 .nav-account.dropdown-toggle::after {
     display: none !important;
+}
+
+.car-image {
+    width: 500px !important;
+    height: 300px !important;
 }
 /* END user avatar */
 
@@ -108,5 +113,18 @@
 .footer {
     height: 50px;
 }
-
 /* END footer align bottom */
+
+/* START booking page */
+#book {
+    background: url('/moov/assets/test.jpg');
+    background-position: bottom !important;
+    background-size: cover !important;
+    background-color: transparent !important;
+}
+
+#find-car-card {
+    width: 800px;
+    max-width: 100%;
+}
+/* END booking page */
