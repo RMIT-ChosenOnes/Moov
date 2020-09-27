@@ -3,9 +3,15 @@ session_start();
 require_once 'config.php';
 $page_name = basename(htmlspecialchars($_SERVER['PHP_SELF']), '.php');
 
+$book_pick_up_date = $book_pick_up_time = $book_return_date = $book_return_time = '';
+$book_pick_up_date_err = $book_pick_up_time_err = $book_return_date_err = $book_return_time_err = $book_err = '';
+
 $today_date = date('d/m/Y');
 $next_date = date('d/m/Y', strtotime('+1 day'));
 $sample_minute = array('00', '15', '30', '45');
+$search_date_symbol = array('/', '.');
+$replace_date_symbol = array('-', '-');
+$current_time = date('H:i', strtotime('+30 minutes'));
 
 for ($i = 0; $i < 24; $i++) {
     foreach ($sample_minute as $minute) {
@@ -19,6 +25,76 @@ for ($i = 0; $i < 24; $i++) {
         
         $select_time_option[] = $time . ':' . $minute;
         
+    }
+}
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // Check pick up date is empty
+    if (empty(trim($_POST['bookPickUpDate']))) {
+        $book_pick_up_date_err = 'Please enter the pick-up date of your booking.';
+        
+    }
+    
+    // Check return date is empty
+    if (empty(trim($_POST['bookReturnDate']))) {
+        $book_return_date_err = 'Please enter the return date of your booking.';
+        
+    } else {
+        // Check pick up date is bigger than return date
+        if (trim($_POST['bookPickUpDate']) > trim($_POST['bookReturnDate'])) {
+            $book_pick_up_date_err = $book_return_date_err = 'Return date must be bigger than pick-up date.';
+            
+        } elseif (trim($_POST['bookPickUpDate']) < $today_date) { // Check pick up date has past
+            $book_pick_up_date_err = 'Please enter a valid pick-up date of your booking.';
+            
+        } else {
+            $book_temp_pick_up_date = trim($_POST['bookPickUpDate']);
+            $book_temp_return_date = trim($_POST['bookReturnDate']);
+            
+        }
+    }
+    
+    // Check pick up time is empty
+    if (!isset($_POST['bookPickUpTime']) || $_POST['bookPickUpTime'] == '') {
+        $book_pick_up_time_err = 'Please select the pick-up time of your booking.';
+        
+    } else {
+        if ($book_temp_pick_up_date == $today_date) {
+            // Check pick up time has past if pick up date is today
+            if ($_POST['bookPickUpTime'] <= $current_time) {
+                $book_pick_up_time_err = 'You have selected either a past or too close to current pick-up time of your booking. Please try another pick-up time.';
+                
+            } else {
+                $book_pick_up_time = $_POST['bookPickUpTime'];
+                
+            }
+        }
+    }
+    
+    // Check return time is empty
+    if (!isset($_POST['bookReturnTime']) || $_POST['bookReturnTime'] == '') {
+        $book_return_time_err = 'Please select the return time of your booking.';
+        
+    } else {
+        $book_return_time = $_POST['bookReturnTime'];
+        
+    }
+    
+    if (empty($book_pick_up_date_err) && empty($book_pick_up_time_err) && empty($book_return_date_err) && empty($book_return_time_err)) {
+        $book_pick_up_date = date('Y-m-d H:i', strtotime(str_replace($search_date_symbol, $replace_date_symbol, $book_temp_pick_up_date . ' ' . $book_pick_up_time)));
+        $book_return_date = date('Y-m-d H:i', strtotime(str_replace($search_date_symbol, $replace_date_symbol, $book_temp_return_date . ' ' . $book_return_time)));
+        
+        if ($book_pick_up_date > $book_return_date) {
+            $book_err = 'Return time must be bigger than pick-up time.';
+            
+        } else {
+            $redirect_url = '?bookPickUpDate=' . $book_temp_pick_up_date . '&bookPickUpTime=' . $book_pick_up_time . '&bookReturnDate=' . $book_temp_return_date . '&bookReturnTime=' . $book_return_time;
+            
+            unset($_POST);
+            
+            header('location: /moov/book' . $redirect_url);
+            
+        }
     }
 }
 ?>
@@ -75,7 +151,7 @@ for ($i = 0; $i < 24; $i++) {
                     <label for="bookPickUpDate" class="col-sm-2 col-form-label">Pick-Up</label>
                     
                     <div class="col">
-                        <input type="date" class="form-control <?php echo !empty($book_pick_up_date_err) ? 'border border-danger' : ''; ?>" id="bookPickUpDate" name="bookPickUpDate" placeholder="dd / mm / yyyy" min="<?php echo $today_date; ?>" value="<?php echo !empty($_POST['bookPickUpDate']) ? $_POST['bookPickUpDate'] : $today_date; ?>" onKeyUp="changeEventButton(this)">
+                        <input type="date" class="form-control <?php echo !empty($book_pick_up_date_err) || !empty($book_err) ? 'border border-danger' : ''; ?>" id="bookPickUpDate" name="bookPickUpDate" placeholder="dd / mm / yyyy" min="<?php echo $today_date; ?>" value="<?php echo !empty($_POST['bookPickUpDate']) ? $_POST['bookPickUpDate'] : $today_date; ?>" onKeyUp="changeEventButton(this)">
                         
                         <?php
 						if (isset($book_pick_up_date_err) && !empty($book_pick_up_date_err)) {
@@ -86,7 +162,7 @@ for ($i = 0; $i < 24; $i++) {
                     </div>
                     
                     <div class="col">
-                        <select id="bookPickUpTime" class="form-control <?php echo !empty($book_pick_up_time_err) ? 'border border-danger' : ''; ?>" name="bookPickUpTime" onKeyUp="changeEventButton(this)">
+                        <select id="bookPickUpTime" class="form-control <?php echo !empty($book_pick_up_time_err) || !empty($book_err) ? 'border border-danger' : ''; ?>" name="bookPickUpTime" onKeyUp="changeEventButton(this)">
                             <option value="" selected>Select Pick-Up Time</option>
                             
                             <?php
@@ -112,7 +188,7 @@ for ($i = 0; $i < 24; $i++) {
                     <label for="bookReturnDate" class="col-sm-2 col-form-label">Return</label>
                     
                     <div class="col">
-                        <input type="date" class="form-control <?php echo !empty($book_return_date_err) ? 'border border-danger' : ''; ?>" id="bookReturnDate" name="bookReturnDate" placeholder="dd / mm / yyyy" min="<?php echo $today_date; ?>" value="<?php echo !empty($_POST['bookReturnDate']) ? $_POST['bookReturnDate'] : $next_date; ?>" onKeyUp="changeEventButton(this)">
+                        <input type="date" class="form-control <?php echo !empty($book_return_date_err) || !empty($book_err) ? 'border border-danger' : ''; ?>" id="bookReturnDate" name="bookReturnDate" placeholder="dd / mm / yyyy" min="<?php echo $today_date; ?>" value="<?php echo !empty($_POST['bookReturnDate']) ? $_POST['bookReturnDate'] : $next_date; ?>" onKeyUp="changeEventButton(this)">
                         
                         <?php
 						if (isset($book_return_date_err) && !empty($book_return_date_err)) {
@@ -123,7 +199,7 @@ for ($i = 0; $i < 24; $i++) {
                     </div>
                     
                     <div class="col">
-                        <select id="bookReturnTime" class="form-control <?php echo !empty($book_return_time_err) ? 'border border-danger' : ''; ?>" name="bookReturnTime" onKeyUp="changeEventButton(this)">
+                        <select id="bookReturnTime" class="form-control <?php echo !empty($book_return_time_err) || !empty($book_err) ? 'border border-danger' : ''; ?>" name="bookReturnTime" onKeyUp="changeEventButton(this)">
                             <option value="" selected>Select Return Time</option>
                             
                             <?php
@@ -145,6 +221,13 @@ for ($i = 0; $i < 24; $i++) {
                     </div>
                 </div>
                 
+                <?php
+                if (isset($book_err) && !empty($book_err)) {
+                    echo '<p class="text-danger mb-0 mt-4">' . $book_err . '</p>';
+
+                }
+                ?>
+                
                 <button id="searchSubmitButton" type="submit" class="btn btn-secondary btn-block mt-5">
 					<span id="submitButton">Find</span>
 					
@@ -152,6 +235,30 @@ for ($i = 0; $i < 24; $i++) {
 					<span id="processingButton" class="d-none">Processing...</span>
 				</button>
             </form>
+            
+            <script>
+				function submitButton() {
+					document.getElementById('searchSubmitButton').disabled = true;
+					document.getElementById('submitButton').classList.add('d-none');
+					document.getElementById('processingIcon').classList.add('d-inline-block');
+					document.getElementById('processingIcon').classList.remove('d-none');
+					document.getElementById('processingButton').classList.remove('d-none');
+
+				}
+
+				function changeEventButton(event) {
+					if (event.keyCode == 13) {
+						event.preventDefault;
+
+						document.getElementById('searchSubmitButton').disabled = true;
+						document.getElementById('submitButton').classList.add('d-none');
+						document.getElementById('processingIcon').classList.add('d-inline-block');
+						document.getElementById('processingIcon').classList.remove('d-none');
+						document.getElementById('processingButton').classList.remove('d-none');
+
+					}
+				}
+			</script>
         </div>
 	</div>
 

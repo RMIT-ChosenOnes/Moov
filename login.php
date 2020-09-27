@@ -192,7 +192,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 		
 		<div class="container bg-secondary pt-4 pb-2 rounded">
 			<form action="<?php echo basename(htmlspecialchars($_SERVER['PHP_SELF']), '.php'); ?>" method="post" onSubmit="submitButton()">
-                <input type="hidden" id="referrerUrl" name="referrerUrl" value="<?php //echo $_GET['url'] . $_POST['referrerUrl']; ?>">
+                <input type="hidden" id="referrerUrl" name="referrerUrl" value="<?php echo $_GET['url'] . $_POST['referrerUrl']; ?>">
                 
 				<div class="form-group row align-items-center">
 					<label for="loginEmailAddress" class="col-sm-3 col-form-label">Email Address</label>
