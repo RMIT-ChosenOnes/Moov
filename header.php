@@ -28,7 +28,7 @@
 			</li>
 			
 			<li class="nav-item <?php echo isset($page_name) && $page_name == 'support' ? 'active' : ''; ?>">
-				<a class="nav-link" href="support">Support</a>
+				<a class="nav-link" href="contact-us">Support</a>
 			</li>
             
             <?php

@@ -25,6 +25,11 @@ for ($i = 0; $i < 24; $i++) {
         
     }
 }
+
+if (empty($_GET['bookPickUpDate']) || empty($_GET['bookPickUpTime']) || empty($_GET['bookReturnDate']) || empty($_GET['bookReturnTime'])) {
+	header('location: /moov/find-cars');
+	
+}
 ?>
 
 <!DOCTYPE html>
@@ -77,19 +82,19 @@ for ($i = 0; $i < 24; $i++) {
         <div class="row mt-5">
             <!-- Car Filter Function -->
             <div class="col-md-3">
-                <form action="<?php echo basename(htmlspecialchars($_SERVER['PHP_SELF']), '.php'); ?>" method="get" onSubmit="submitButton()">
+                <form action="<?php echo basename(htmlspecialchars($_SERVER['PHP_SELF']), '.php'); ?>" method="get">
                     <input type="hidden" name="bookView" value="<?php echo isset($_GET['bookView']) ? $_GET['bookView'] : 'list'; ?>">
                     
                     <!-- Pick Up Filter -->
                     <label for="bookPickUpDate">Pick-Up</label>
                     
                     <div class="form-row">
-                        <div class="col">
-                            <input type="date" class="form-control <?php echo !empty($book_pick_up_date_err) ? 'border border-danger' : ''; ?>" id="bookPickUpDate" name="bookPickUpDate" placeholder="dd / mm / yyyy" min="<?php echo $today_date; ?>" value="<?php echo !empty($_GET['bookPickUpDate']) ? $_GET['bookPickUpDate'] : $today_date; ?>" onKeyUp="changeEventButton(this)">
+                        <div class="col-7">
+                            <input type="date" class="form-control <?php echo !empty($book_pick_up_date_err) ? 'border border-danger' : ''; ?>" id="bookPickUpDate" name="bookPickUpDate" placeholder="dd / mm / yyyy" min="<?php echo $today_date; ?>" value="<?php echo !empty($_GET['bookPickUpDate']) ? $_GET['bookPickUpDate'] : $today_date; ?>" onChange="checkDateTime()">
                         </div>
                         
                         <div class="col">
-                            <select id="bookPickUpTime" class="form-control <?php echo !empty($book_pick_up_time_err) ? 'border border-danger' : ''; ?>" name="bookPickUpTime" onKeyUp="changeEventButton(this)">
+                            <select id="bookPickUpTime" class="form-control <?php echo !empty($book_pick_up_time_err) ? 'border border-danger' : ''; ?>" name="bookPickUpTime" onChange="checkDateTime()">
                                 <option value="" selected>Select Pick-Up Time</option>
 
                                 <?php
@@ -102,18 +107,21 @@ for ($i = 0; $i < 24; $i++) {
                                 ?>
                             </select>
                         </div>
+						
+						<p id="bookPickUpDateErr" class="text-danger mb-0 pl-1"></p>
+						<p id="bookPickUpTimeErr" class="text-danger mb-0 pl-1"></p>
                     </div>
                     
                     <!-- Return Filter -->
                     <label for="bookReturnDate" class="mt-4">Return</label>
                     
                     <div class="form-row">
-                        <div class="col">
-                            <input type="date" class="form-control <?php echo !empty($book_return_date_err) ? 'border border-danger' : ''; ?>" id="bookReturnDate" name="bookReturnDate" placeholder="dd / mm / yyyy" min="<?php echo $next_date; ?>" value="<?php echo !empty($_GET['bookReturnDate']) ? $_GET['bookReturnDate'] : $next_date; ?>" onKeyUp="changeEventButton(this)">
+                        <div class="col-7">
+                            <input type="date" class="form-control <?php echo !empty($book_return_date_err) ? 'border border-danger' : ''; ?>" id="bookReturnDate" name="bookReturnDate" placeholder="dd / mm / yyyy" min="<?php echo $next_date; ?>" value="<?php echo !empty($_GET['bookReturnDate']) ? $_GET['bookReturnDate'] : $next_date; ?>" onChange="checkDateTime()">
                         </div>
                         
                         <div class="col">
-                            <select id="bookReturnTime" class="form-control <?php echo !empty($book_return_time_err) ? 'border border-danger' : ''; ?>" name="bookReturnTime" onKeyUp="changeEventButton(this)">
+                            <select id="bookReturnTime" class="form-control <?php echo !empty($book_return_time_err) ? 'border border-danger' : ''; ?>" name="bookReturnTime" onChange="checkDateTime()">
                                 <option value="" selected>Select Return Time</option>
 
                                 <?php
@@ -126,6 +134,9 @@ for ($i = 0; $i < 24; $i++) {
                                 ?>
                             </select>
                         </div>
+						
+						<p id="bookReturnDateErr" class="text-danger mb-0 pl-1"></p>
+						<p id="bookReturnTimeErr" class="text-danger mb-0 pl-1"></p>
                     </div>
                     
                     <!-- Search Bar -->
@@ -155,12 +166,7 @@ for ($i = 0; $i < 24; $i++) {
                         </select>
                     </div>
                     
-                    <button id="searchSubmitButton" type="submit" class="btn btn-secondary btn-block mt-5">
-                        <span id="submitButton">Search</span>
-
-                        <img id="processingIcon" src="/moov/assets/images/processing_icon.svg" class="processing-icon d-none">
-                        <span id="processingButton" class="d-none">Processing...</span>
-                    </button>
+                    <button id="searchSubmitButton" type="submit" class="btn btn-secondary btn-block mt-5">Search</button>
                     
                     <!-- Filter -->
                     <div class="form-group mt-4">
@@ -172,35 +178,36 @@ for ($i = 0; $i < 24; $i++) {
             </div>
             
             <?php
-            $search_engine_url = '&bookPickUpDate=' . $_GET['bookPickUpDate'] . '&bookPickUpTime=' . $_GET['bookPickUpTime'] . '&bookReturnDate=' . $_GET['bookReturnDate'] . '&bookReturnTime=' . $_GET['bookReturnTime'] . '&bookSearch=' . $_GET['bookSearch'] . '&bookSort=' . $_GET['bookSort'];
+            $search_engine_url = '?bookView=' . $_GET['bookView'] . '&bookPickUpDate=' . $_GET['bookPickUpDate'] . '&bookPickUpTime=' . $_GET['bookPickUpTime'] . '&bookReturnDate=' . $_GET['bookReturnDate'] . '&bookReturnTime=' . $_GET['bookReturnTime'] . '&bookSearch=' . $_GET['bookSearch'] . '&bookSort=' . $_GET['bookSort'];
+			$book_view_position = strpos($search_engine_url, 'bookView');
             
             ?>
                 
             <!-- Car Search Result -->
             <div class="col-md-9">
                 <!-- View Option -->
-                <div class="row float-right align-items-center mb-5 mb-md-4 px-3">
-                    <p class="mb-0 mr-1">View:</p>
+				<div class="row justify-content-end align-items-center mb-5 mb-md-4 px-3">
+					<p class="mb-0 mr-1">View:</p>
 
-                    <div class="btn-group" role="group" aria-label="View Option">
-                        <a role="button" class="btn btn-secondary btn-sm <?php echo $_GET['bookView'] == 'list' ? 'active' : !isset($_GET['bookView']) ? 'active' : ''; ?>" href="<?php echo '?bookView=list' . $search_engine_url; ?>">
-                            <img class="w-50" title="List" alt="List Icon" src="/moov/assets/images/book_view_list_icon.svg">
-                        </a>
+					<div class="btn-group" role="group" aria-label="View Option">
+						<a role="button" class="btn btn-secondary btn-sm <?php echo ($_GET['bookView'] == 'list' || !isset($_GET['bookView']) || empty($_GET['bookView'])) ? 'active' : ''; ?>" href="<?php echo empty($_GET['bookView']) ? substr_replace($search_engine_url, 'bookView=list', $book_view_position, 9) : str_replace('bookView=grid', 'bookView=list', $search_engine_url); ?>">
+							<img class="w-50" title="List" alt="List Icon" src="/moov/assets/images/book_view_list_icon.svg">
+						</a>
 
-                        <a role="button" class="btn btn-secondary btn-sm <?php echo $_GET['bookView'] == 'grid' ? 'active' : ''; ?>" href="<?php echo '?bookView=grid' . $search_engine_url; ?>">
-                            <img class="w-50" title="Grid" alt="Grid Icon" src="/moov/assets/images/book_view_grid_icon.svg">
-                        </a>
-                    </div>
-                </div>
-                
+						<a role="button" class="btn btn-secondary btn-sm <?php echo $_GET['bookView'] == 'grid' ? 'active' : ''; ?>" href="<?php echo empty($_GET['bookView']) ? substr_replace($search_engine_url, 'bookView=grid', $book_view_position, 9) : str_replace('bookView=list', 'bookView=grid', $search_engine_url); ?>">
+							<img class="w-50" title="Grid" alt="Grid Icon" src="/moov/assets/images/book_view_grid_icon.svg">
+						</a>
+					</div>
+				</div>
+					
                 <div class="row">
                     <?php
                     $get_car_result_sql = 'SELECT * FROM moov_portal.car AS car LEFT JOIN moov_portal.car_location ON car.car_id = moov_portal.car_location.car_id WHERE car.car_id NOT IN (SELECT car_id FROM moov.booking WHERE pick_up_date BETWEEN ? AND ? OR return_date BETWEEN ? AND ?) AND (address_1 LIKE ? OR address_2 LIKE ? OR postal_code LIKE ? OR suburb LIKE ?) ORDER BY car.' . (isset($_GET['bookSort']) && !empty($_GET['bookSort']) ? $_GET['bookSort'] : 'car_id');
                     $get_car_result_stmt = mysqli_prepare($conn, $get_car_result_sql);
                     
                     mysqli_stmt_bind_param($get_car_result_stmt, 'ssssssss', $param_booking_start_date, $param_booking_end_date, $param_booking_start_date, $param_booking_end_date, $param_search_query, $param_search_query, $param_search_query, $param_search_query);
-                    $param_booking_start_date = date('Y-m-d H:m', strtotime(str_replace($search_date_symbol, $replace_date_symbol, $_GET['bookPickUpDate'] . ' ' . $_GET['bookPickUpTime'])));
-                    $param_booking_end_date = date('Y-m-d H:m', strtotime(str_replace($search_date_symbol, $replace_date_symbol, $_GET['bookReturnDate'] . ' ' . $_GET['bookReturnTime'])));
+                    $param_booking_start_date = date('Y-m-d H:i', strtotime(str_replace($search_date_symbol, $replace_date_symbol, $_GET['bookPickUpDate'] . ' ' . $_GET['bookPickUpTime'])));
+                    $param_booking_end_date = date('Y-m-d H:i', strtotime(str_replace($search_date_symbol, $replace_date_symbol, $_GET['bookReturnDate'] . ' ' . $_GET['bookReturnTime'])));
                     $param_search_query = (isset($_GET['bookSearch']) && !empty($_GET['bookSearch']) ? '%' . $_GET['bookSearch'] . '%' : '%%');
 
                     if (mysqli_stmt_execute($get_car_result_stmt)) {
@@ -271,9 +278,10 @@ for ($i = 0; $i < 24; $i++) {
                                 }
                             }
 
-                            mysqli_stmt_close($get_suburb_stmt);
-                            mysqli_stmt_close($get_type_stmt);
                             mysqli_stmt_close($get_brand_stmt);
+                            mysqli_stmt_close($get_type_stmt);
+                            mysqli_stmt_close($get_transmission_type_stmt);
+                            mysqli_stmt_close($get_fuel_type_stmt);
 
                             $car_temp_image_name = strtolower($car_brand . '_' . $car_result['model'] . '_' . $car_result['name']);
                             $car_image_name = str_replace($search_filename, $replace_filename, $car_temp_image_name);
@@ -298,8 +306,17 @@ for ($i = 0; $i < 24; $i++) {
                                             <p class="mb-2">A$' . number_format($car_result['price_per_hour'], 2, '.', ',') . ' per hour</p>
 
                                             <p class="mb-0"><b>Location:</b> ' . $car_result['address_1'] . ', ' . $car_result['suburb'] . ' ' . $car_result['postal_code'] . ' ' . strtoupper($car_result['state']) . '</p>
-
-                                            <a class="btn btn-secondary btn-block mt-4" role="button" href="/moov/booking?' . urlencode($booking_url) . '">Select</a>
+								';
+								
+								if (isset($_SESSION['moov_user_logged_in']) && $_SESSION['moov_user_logged_in'] == TRUE) {
+                                    echo '<a class="btn btn-secondary btn-block mt-4" role="button" href="/moov/checkout?' . $booking_url . '">Select</a>';
+                                    
+                                } else {
+                                    echo '<a class="btn btn-primary btn-block mt-4" role="button" href="/moov/login?url=' . urlencode('/moov/book' . $search_engine_url) . '">Login to Book</a>';
+                                    
+                                }
+								
+								echo '
                                         </div>
                                     </div>
                                 </div>
@@ -329,10 +346,10 @@ for ($i = 0; $i < 24; $i++) {
                                 ';
                                 
                                 if (isset($_SESSION['moov_user_logged_in']) && $_SESSION['moov_user_logged_in'] == TRUE) {
-                                    echo '<a class="btn btn-secondary btn-block" role="button" href="/moov/booking?' . urlencode($booking_url) . '">Select</a>';
+                                    echo '<a class="btn btn-secondary btn-block" role="button" href="/moov/checkout?' . $booking_url . '">Select</a>';
                                     
                                 } else {
-                                    echo '<a class="btn btn-primary btn-block" role="button" href="/moov/login?url=' . urlencode($search_engine_url) . '">Login to Book</a>';
+                                    echo '<a class="btn btn-primary btn-block" role="button" href="/moov/login?url=' . urlencode('/moov/book' . $search_engine_url) . '">Login to Book</a>';
                                     
                                 }
                                 
@@ -348,7 +365,7 @@ for ($i = 0; $i < 24; $i++) {
                         }
                     }
 
-                    mysqli_stmt_close($get_car_list_stmt);
+                    mysqli_stmt_close($get_car_result_stmt);
                     ?>
                 </div>
             </div>
@@ -356,20 +373,104 @@ for ($i = 0; $i < 24; $i++) {
 	</div>
     
     <script>
-        document.getElementById('carResult').onload = function() {
-            //document.getElementById('grid').style.display = 'none';
-            
-        }
-        
-        function changeView(selectedView) {
-            document.getElementById('listButton').classList.remove('active');
-            document.getElementById('gridButton').classList.remove('active');
-            document.getElementById('list').style.display = 'none';
-            document.getElementById('grid').style.display = 'none';
-            
-            document.getElementById(selectedView).style.display = 'block';
-            
-        }
+		function checkDateTime() {
+			var pickUpDateValue = document.getElementById('bookPickUpDate');
+			var pickUpTimeValue = document.getElementById('bookPickUpTime');
+			var returnDateValue = document.getElementById('bookReturnDate');
+			var returnTimeValue = document.getElementById('bookReturnTime');
+			var pickUpDateErr = document.getElementById('bookPickUpDateErr');
+			var pickUpTimeErr = document.getElementById('bookPickUpTimeErr');
+			var returnDateErr = document.getElementById('bookReturnDateErr');
+			var returnTimeErr = document.getElementById('bookReturnTimeErr');
+			var searchButton = document.getElementById('searchSubmitButton');
+			
+			var pickUpDateError = false;
+			var pickUpTimeError = false;
+			var returnDateError = false;
+			var returnTimeError = false;
+			var todayDateTime = new Date().toISOString();
+			var todayDateTimeMins = new Date(todayDateTime);
+			
+			// Check if pick up date is empty
+			if (pickUpDateValue.value == '') {
+				pickUpDateValue.classList.add('border-danger');
+				pickUpDateErr.innerHTML = 'Pick-up date cannot be empty.';
+				pickUpDateError = true;
+				
+			} else {
+				var pickUpDateTimeValue = pickUpDateValue.value + ' ' + pickUpTimeValue.value;
+				var pickUpDateTimeString = new Date(pickUpDateTimeValue);
+				var pickUpDateTime = new Date(pickUpDateTimeValue).toISOString();
+				var acceptedBookingDateTime = new Date(todayDateTimeMins.getTime() + 1800000).toISOString();
+				
+				pickUpDateValue.classList.remove('border-danger');
+				pickUpDateErr.innerHTML = '';
+				pickUpDateError = false;
+				
+			}
+			
+			// Check if return date is empty
+			if (returnDateValue.value == '') {
+				returnDateValue.classList.add('border-danger');
+				returnDateErr.innerHTML = 'Return date cannot be empty.';
+				returnDateError = true;
+				
+			} else {
+				var returnDateTimeValue = returnDateValue.value + ' ' + returnTimeValue.value;
+				var returnDateTime = new Date(returnDateTimeValue).toISOString();
+				var acceptedReturnDateTime = new Date(pickUpDateTimeString.getTime() + 1800000).toISOString();
+				
+				returnDateValue.classList.remove('border-danger');
+				returnDateErr.innerHTML = '';
+				returnDateError = false;
+				
+			}
+			
+			// Check pick-up date time has past
+			if (pickUpDateTime <= todayDateTime) {
+				pickUpTimeValue.classList.add('border-danger');
+				pickUpTimeErr.innerHTML = 'Pick-up time has passed. Please try again.';
+				pickUpTimeError = true;
+				
+			} else if (pickUpDateTime <= acceptedBookingDateTime) { // Check pick up date time is too close to current time
+				pickUpTimeValue.classList.add('border-danger');
+				pickUpTimeErr.innerHTML = 'Pick-up time must be at least 30 minutes from now.';
+				pickUpTimeError = true;
+				
+			} else {
+				pickUpTimeValue.classList.remove('border-danger');
+				pickUpTimeErr.innerHTML = '';
+				pickUpTimeError = false;
+				
+			}
+			
+			// Check return date time has past
+			if (returnDateTime <= pickUpDateTime) {
+				returnTimeValue.classList.add('border-danger');
+				returnTimeErr.innerHTML = 'Return time is older than pick-up time.';
+				returnTimeError = true;
+				
+			} else if (returnDateTime < acceptedReturnDateTime) { // Check return date time is too close to pick-up date time
+				returnTimeValue.classList.add('border-danger');
+				returnTimeErr.innerHTML = 'Minimum booking duration is 30 minutes.';
+				returnTimeError = true;
+				
+			} else {
+				returnTimeValue.classList.remove('border-danger');
+				returnTimeErr.innerHTML = '';
+				returnTimeError = false;
+				
+			}
+			
+			// Disabled search button if contains error
+			if (pickUpDateError == true || pickUpTimeError == true || returnDateError == true || returnTimeError == true) {
+				searchButton.disabled = true;
+				
+			} else {
+				searchButton.disabled = false;
+				
+			}
+		}
     </script>
 
     <?php include 'footer.php'; ?>

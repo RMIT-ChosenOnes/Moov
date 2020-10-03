@@ -6,8 +6,8 @@ $page_name = basename(htmlspecialchars($_SERVER['PHP_SELF']), '.php');
 $book_pick_up_date = $book_pick_up_time = $book_return_date = $book_return_time = '';
 $book_pick_up_date_err = $book_pick_up_time_err = $book_return_date_err = $book_return_time_err = $book_err = '';
 
-$today_date = date('d/m/Y');
-$next_date = date('d/m/Y', strtotime('+1 day'));
+$today_date = date('Y-m-d');
+$next_date = date('Y-m-d', strtotime('+1 day'));
 $sample_minute = array('00', '15', '30', '45');
 $search_date_symbol = array('/', '.');
 $replace_date_symbol = array('-', '-');
@@ -68,7 +68,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $book_pick_up_time = $_POST['bookPickUpTime'];
                 
             }
-        }
+        } else {
+			$book_pick_up_time = $_POST['bookPickUpTime'];
+			
+		}
     }
     
     // Check return time is empty
@@ -89,7 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             
         } else {
             $redirect_url = '?bookPickUpDate=' . $book_temp_pick_up_date . '&bookPickUpTime=' . $book_pick_up_time . '&bookReturnDate=' . $book_temp_return_date . '&bookReturnTime=' . $book_return_time;
-            
+			
             unset($_POST);
             
             header('location: /moov/book' . $redirect_url);

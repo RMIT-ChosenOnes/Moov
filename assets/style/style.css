@@ -77,7 +77,6 @@
     border-color: #05386b;
 }
 
-
 /* START proccessing icon */
 .processing-icon {
     display: inline-block;
@@ -105,9 +104,7 @@
 }
 /* END processing icon */
 
-
 /* START user avatar */
-
 .user-avatar, .car-image {
     background-size: cover !important;
     width: 250px;
@@ -137,7 +134,6 @@
 }
 /* END user avatar */
 
-
 /* START 404 */
 #error {
     background-size: cover;
@@ -150,7 +146,6 @@
     max-width: 100%;
 }
 /* END 404 */
-
 
 /* START driving license */
 #driving-license {
@@ -180,7 +175,6 @@
 }
 /* END driving license */
 
-
 /* START footer align bottom */
 .footer-align-bottom {
     min-height: calc(100vh - 190px);
@@ -190,7 +184,6 @@
     height: 50px;
 }
 /* END footer align bottom */
-
 
 /* START booking page */
 #book {
@@ -215,3 +208,26 @@
     }
 }
 /* END booking page */
+
+/*START Contact-us pge */
+#contact-us {
+    background: url('../images/contact-us-background.png');
+    background-position: bottom !important;
+    background-size: cover !important;
+    background-color: transparent !important;
+}
+/* END contact-us page */
+
+/* START hide number input selector */
+/* Chrome, Safari, Edge, Opera */
+.number-hide::-webkit-outer-spin-button,
+.number-hide::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Firefox */
+.number-hide[type=number] {
+    -moz-appearance: textfield;
+}
+/* END hide number input selector */
