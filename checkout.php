@@ -3,8 +3,314 @@ session_start();
 require_once 'config.php';
 $page_name = 'find-cars';
 
+$booking_car_id = $booking_pick_up_date = $booking_pick_up_time = $booking_return_date = $booking_return_time = $booking_duration = $booking_amount = $billing_first_name = $billing_last_name = $billing_email_address = $billing_contact_number = $billing_address_1 = $billing_address_2 = $billing_suburb = $billing_postal_code = $billing_state = $billing_country = $billing_payment_method = $billing_card_number = $billing_temp_card_number = $billing_card_expiry_date = $billing_card_name = $billing_card_cvv = '';
+$billing_first_name_err = $billing_last_name_err = $billing_email_address_err = $billing_contact_number_err = $billing_address_1_err = $billing_address_2_err = $billing_suburb_err = $billing_postal_code_err = $billing_state_err = $billing_country_err = $billing_payment_method_err = $billing_err = '';
+$billing_card_number_err = $billing_card_expiry_date_err = $billing_card_name_err = $billing_card_cvv_err = FALSE;
+
+$today_date = date('m-y');
 $search_filename = array('- ', ' ', '-', '.');
 $replace_filename = array('_', '_', '_', '_');
+$search_contact_number_symbol = array('-', ' ');
+$replace_contact_number_symbol = array('', '');
+$search_date_symbol = array('/', '.');
+$replace_date_symbol = array('-', '-');
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $booking_car_id = $_POST['bookingCarId'];
+    $booking_pick_up_date = $_POST['bookingPickUpDate'];
+    $booking_pick_up_time = $_POST['bookingPickUpTime'];
+    $booking_return_date = $_POST['bookingReturnDate'];
+    $booking_return_time = $_POST['bookingReturnTime'];
+    $booking_duration = $_POST['bookingDuration'];
+    $booking_amount = $_POST['bookingAmount'];
+    
+    if (empty(trim($_POST['billingFirstName']))) {
+        $billing_first_name_err = 'Please enter your first name.';
+        
+    } else {
+        if (preg_match('/^[a-zA-zw\-\s]{3,100}$/', trim($_POST['billingFirstName']))) {
+            $billing_first_name = ucwords(trim($_POST['billingFirstName']));
+
+        } else {
+            $billing_first_name_err = 'Please enter a valid first name.';
+
+        }
+    }
+    
+    if (empty(trim($_POST['billingLastName']))) {
+        $billing_last_name_err = 'Please enter your last name.';
+        
+    } else {
+        if (preg_match('/^[a-zA-zw\-\s]{2,100}$/', trim($_POST['billingLastName']))) {
+            $billing_last_name = ucwords(trim($_POST['billingLastName']));
+
+        } else {
+            $billing_last_name_err = 'Please enter a valid last name.';
+
+        }
+    }
+    
+    if (empty(trim($_POST['billingEmailAddress']))) {
+        $billing_email_address_err = 'Please enter your email address.';
+        
+    } else {
+        $billing_email_address = trim($_POST['billingEmailAddress']);
+        
+    }
+    
+    if (empty(trim($_POST['billingContactNumber']))) {
+        $billing_contact_number_err = 'Please enter your contact number.';
+        
+    } else {
+        $temp_contact_number = trim($_POST['billingContactNumber']);
+				
+        $replace_temp_cn = str_replace($search_contact_number_symbol, $replace_contact_number_symbol, $temp_contact_number);
+
+        if (substr($replace_temp_cn, 0, 1) == 0) {
+            $replace_temp_cn = substr($replace_temp_cn, 1);
+        }
+
+        if (preg_match('/^(0)?(4){1}[0-9]{8}$/', $replace_temp_cn)) {
+            $billing_contact_number = $replace_temp_cn;
+
+        } else {
+            $billing_contact_number_err = 'Please enter a valid Australian contact number.';
+
+        }
+    }
+    
+    if (empty(trim($_POST['billingAddress1']))) {
+        $billing_address_1_err = 'Please enter your billing address.';
+
+    } else {
+        if (preg_match('/^[0-9a-zA-Z\s\.\-\/\,]{5,}$/', trim($_POST['billingAddress1']))) {
+            $billing_address_1 = ucwords(trim($_POST['billingAddress1']));
+
+        } else {
+            $billing_address_1_err = 'Please enter a valid address.';
+
+        }
+    }
+
+    if (!empty(trim($_POST['billingAddress2']))) {
+        if (preg_match('/^[0-9a-zA-Z\s\.\-\/\,]{5,}$/', trim($_POST['billingAddress2']))) {
+            $billing_address_2 = ucwords(trim($_POST['billingAddress2']));
+
+        } else {
+            $billing_address_2_err = 'Please enter a valid address.';
+
+        }
+    } else {
+        $billing_address_2 = NULL;
+
+    }
+    
+    if (empty(trim($_POST['billingSuburb']))) {
+        $billing_suburb_err = 'Please enter your billing suburb.';
+
+    } else {
+        if (preg_match('/^[a-zA-Z\s\-]{3,255}$/', trim($_POST['billingSuburb']))) {
+            $billing_suburb = ucwords(trim($_POST['billingSuburb']));
+
+        } else {
+            $billing_suburb_err = 'Please enter a valid suburb.';
+
+        }
+    }
+
+    if (empty(trim($_POST['billingPostalCode']))) {
+        $billing_postal_code_err = 'Please enter your billing postal code.';
+
+    } else {
+        if (preg_match('/^[0-9]{3,10}$/', trim($_POST['billingPostalCode']))) {
+            $billing_postal_code = trim($_POST['billingPostalCode']);
+
+        } else {
+            $billing_postal_code_err = 'Please enter a valid postal code.';
+
+        }
+    }
+    
+    if (empty(trim($_POST['billingState']))) {
+        $billing_state_err = 'Please enter your billing state.';
+
+    } else {
+        if (preg_match('/^[0-9a-zA-Z\s\-]{3,50}$/', trim($_POST['billingState']))) {
+            $billing_state = trim($_POST['billingState']);
+
+        } else {
+            $billing_state_err = 'Please enter a valid state.';
+
+        }
+    }
+    
+    if (!isset($_POST['billingCountry']) || $_POST['billingCountry'] == '') {
+        $billing_country_err = 'Please select your billing country.';
+
+    } else {
+        $billing_country = $_POST['billingCountry'];
+        
+    }
+    
+    if (!isset($_POST['billingPaymentMethod']) || $_POST['billingPaymentMethod'] == '') {
+        $billing_payment_method_err = 'Please select your payment method.';
+
+    } else {
+        $billing_payment_method = $_POST['billingPaymentMethod'];
+        
+    }
+    
+    if (empty($_POST['billingCardNumber'])) {
+        $billing_card_number_err = TRUE;
+        $billing_err = 'Please enter your card number. ';
+        
+    } else {
+        $billing_temp_card_number = str_replace(' ', '', $_POST['billingCardNumber']);
+        
+        if ($billing_payment_method == 'american_express') {
+            if (preg_match('/^[0-9]{15}$/', $billing_temp_card_number)) {
+                $billing_card_number = $billing_temp_card_number;
+
+            } else {
+                $billing_card_number_err = TRUE;
+                $billing_err = 'Please enter a valid American Express card number. ';
+
+            }
+        } elseif ($billing_payment_method == 'mastercard') {
+            if (preg_match('/^[0-9]{16}$/', $billing_temp_card_number)) {
+                $billing_card_number = $billing_temp_card_number;
+
+            } else {
+                $billing_card_number_err = TRUE;
+                $billing_err = 'Please enter a valid Mastercard card number. ';
+
+            }
+        } elseif ($billing_payment_method == 'visa') {
+            if (preg_match('/^[0-9]{16}$/', $billing_temp_card_number)) {
+                $billing_card_number = $billing_temp_card_number;
+
+            } else {
+                $billing_card_number_err = TRUE;
+                $billing_err = 'Please enter a valid Visa card number. ';
+
+            }
+        }
+    }
+    
+    if (empty(trim($_POST['billingCardExpiryDate']))) {
+        $billing_card_expiry_date_err = TRUE;
+        $billing_err .= 'Please enter your card expiry date. ';
+        
+    } else {
+        $billing_temp_card_expiry_date = str_replace($search_date_symbol, $replace_date_symbol, trim($_POST['billingCardExpiryDate']));
+        $temp_month_year = explode('-', $billing_temp_card_expiry_date);
+        
+        $month = $temp_month_year[0];
+        $year = $temp_month_year[1];
+        
+        if ($month <= 0 || $month > 12 || $year < 20 || $year > (date('y') + 10)) {
+            $billing_card_expiry_date_err = TRUE;
+            $billing_err .= 'Please enter a valid card expiry date. Format: mm / yy ';
+            
+        } elseif ($billing_temp_card_expiry_date > $today_date) {
+            $billing_card_expiry_date_err = TRUE;
+            $billing_err .= 'Your card has expired. Please try with a different card. ';
+            
+        } else {
+            $billing_card_expiry_date = $billing_temp_card_expiry_date;
+            
+        }
+    }
+    
+    if (empty(trim($_POST['billingCardName']))) {
+        $billing_card_name_err = TRUE;
+        $billing_err .= 'Please enter your name on card. ';
+        
+    } else {
+        if (preg_match('/^[a-zA-zw\-\s]{3,100}$/', trim($_POST['billingCardName']))) {
+            $billing_card_name = ucwords(trim($_POST['billingCardName']));
+
+        } else {
+            $billing_card_name_err = TRUE;
+            $billing_err .= 'Please enter a valid name on card.';
+
+        }
+    }
+    
+    if (empty(trim($_POST['billingCardCvv']))) {
+        $billing_card_cvv_err = TRUE;
+        $billing_err .= 'Please enter your card CVV.';
+        
+    } else {
+         if (preg_match('/^[0-9]{3}$/', trim($_POST['billingCardCvv']))) {
+            $billing_card_cvv = trim($_POST['billingCardCvv']);
+
+        } else {
+            $billing_card_cvv_err = TRUE;
+            $billing_err .= 'Please enter a valid card CVV.';
+
+        }
+    }
+    
+    if (empty($billing_first_name_err) && empty($billing_last_name_err) && empty($billing_email_address_err) && empty($billing_contact_number_err) && empty($billing_address_1_err) && empty($billing_address_2_err) && empty($billing_suburb_err) && empty($billing_postal_code_err) && empty($billing_state_err) && empty($billing_country_err) && empty($billing_payment_method_err) && empty($billing_err)) {
+        $register_new_billing_sql = 'INSERT INTO booking_billing (first_name, last_name, email_address, contact_number, address_1, address_2, suburb, postal_code, state, country) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+        $register_new_billing_stmt = mysqli_prepare($conn, $register_new_billing_sql);
+        
+        mysqli_stmt_bind_param($register_new_billing_stmt, 'sssssssssi', $param_billing_first_name, $param_billing_last_name, $param_billing_email_address, $param_billing_contact_number, $param_billing_address_1, $param_billing_address_2, $param_billing_suburb, $param_billing_postal_code, $param_billing_state, $param_billing_country);
+        $param_billing_first_name = $billing_first_name;
+        $param_billing_last_name = $billing_last_name;
+        $param_billing_email_address = $billing_email_address;
+        $param_billing_contact_number = $billing_contact_number;
+        $param_billing_address_1 = $billing_address_1;
+        $param_billing_address_2 = $billing_address_2;
+        $param_billing_suburb = $billing_suburb;
+        $param_billing_postal_code = $billing_postal_code;
+        $param_billing_state = $billing_state;
+        $param_billing_country = $billing_country;
+        
+        if (mysqli_stmt_execute($register_new_billing_stmt)) {
+            $billing_id = mysqli_insert_id($conn);
+            
+            $register_new_payment_sql = 'INSERT INTO booking_payment (payment_method, card_number, name_on_card, expiry_date, cvv) VALUES (?, ?, ?, ?, ?)';
+            $register_new_payment_stmt = mysqli_prepare($conn, $register_new_payment_sql);
+            
+            mysqli_stmt_bind_param($register_new_payment_stmt, 'ssssi', $param_billing_payment_method, $param_billing_card_number, $param_billing_card_name, $param_billing_card_expiry_date, $param_billing_card_cvv);
+            $param_billing_payment_method = $billing_payment_method;
+            $param_billing_card_number = $billing_card_number;
+            $param_billing_card_name = $billing_card_name;
+            $param_billing_card_expiry_date = $billing_card_expiry_date;
+            $param_billing_card_cvv = $billing_card_cvv;
+            
+            if (mysqli_stmt_execute($register_new_payment_stmt)) {
+                $payment_id = mysqli_insert_id($conn);
+                
+                $register_new_booking_sql = 'INSERT INTO booking (customer_id, car_id, billing_id, payment_id, pick_up_date, pick_up_time, return_date, return_time, duration, amount) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+                $register_new_booking_stmt = mysqli_prepare($conn, $register_new_booking_sql);
+                
+                mysqli_stmt_bind_param($register_new_booking_stmt, 'iiiissssss', $param_customer_id, $param_car_id, $param_billing_id, $param_payment_id, $param_booking_pick_up_date, $param_booking_pick_up_time, $param_booking_return_date, $param_booking_return_time, $param_booking_duration, $param_booking_amount);
+                $param_customer_id = $_SESSION['moov_user_account_id'];
+                $param_car_id = $booking_car_id;
+                $param_billing_id = $billing_id;
+                $param_payment_id = $payment_id;
+                $param_booking_pick_up_date = $booking_pick_up_date;
+                $param_booking_pick_up_time = $booking_pick_up_time;
+                $param_booking_return_date = $booking_return_date;
+                $param_booking_return_time = $booking_return_time;
+                $param_booking_duration = $booking_duration;
+                $param_booking_amount = $booking_amount;
+                
+                if (mysqli_stmt_execute($register_new_booking_stmt)) {
+                    
+                } else {
+                    echo mysqli_stmt_error($register_new_booking_stmt);
+                }
+            } else {
+                echo mysqli_stmt_error($register_new_payment_stmt);
+                
+            }
+        }
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -47,7 +353,7 @@ $replace_filename = array('_', '_', '_', '_');
 	<link rel="icon" type="image/png" sizes="32x32" href="/moov/assets/favicon/favicon-16x16.png">
 </head>
 
-<body>
+<body id="checkout">
 	<?php include 'header.php'; ?>
     
 	<div class="container my-3 footer-align-bottom">
@@ -192,6 +498,8 @@ $replace_filename = array('_', '_', '_', '_');
         $discount_price = $total_duration * $car_price_per_hour;
         $discounted_total_price = $discount_price - $total_price;
         $gst = $total_price * 0.10;
+        
+        $booking_url = '?id=' . $_GET['id'] . '&bookPickUpDate=' . $_GET['bookPickUpDate'] . '&bookPickUpTime=' . $_GET['bookPickUpTime'] . '&bookReturnDate=' . $_GET['bookReturnDate'] . '&bookReturnTime=' . $_GET['bookReturnTime'];
 		?>
         <div class="row mt-5">
             <div class="col-md-4">
@@ -251,8 +559,16 @@ $replace_filename = array('_', '_', '_', '_');
                 </div>
             </div>
             
-            <div class="col-md-8">
-                <form action="<?php echo basename(htmlspecialchars($_SERVER['PHP_SELF']), '.php'); ?>" method="get" onSubmit="submitButton()">
+            <div class="col-md-8 mt-4 mt-md-0">
+                <form action="<?php echo basename(htmlspecialchars($_SERVER['PHP_SELF']), '.php') . $booking_url; ?>" method="post" onSubmit="submitButton()">
+                    <input type="hidden" id="bookingCarId" name="bookingCarId" value="<?php echo $_GET['id']; ?>">
+                    <input type="hidden" id="bookingPickUpDate" name="bookingPickUpDate" value="<?php echo $_GET['bookPickUpDate']; ?>">
+                    <input type="hidden" id="bookingPickUpTime" name="bookingPickUpTime" value="<?php echo $_GET['bookPickUpTime']; ?>">
+                    <input type="hidden" id="bookingReturnDate" name="bookingReturnDate" value="<?php echo $_GET['bookReturnDate']; ?>">
+                    <input type="hidden" id="bookingReturnTime" name="bookingReturnTime" value="<?php echo $_GET['bookReturnTime']; ?>">
+                    <input type="hidden" id="bookingDuration" name="bookingDuration" value="<?php echo $total_duration; ?>">
+                    <input type="hidden" id="bookingAmount" name="bookingAmount" value="<?php echo number_format($total_price + $gst, 2);?>">
+                    
                     <h4>Billing Details</h4>
                     
                     <div class="row mt-4">
@@ -269,7 +585,7 @@ $replace_filename = array('_', '_', '_', '_');
                             ?>
                         </div>
                         
-                        <div class="col-md-6">
+                        <div class="col-md-6 mt-4 mt-md-0">
                             <label for="billingLastName">Last Name</label>
                             
                             <input type="text" id="billingLastName" name="billingLastName" class="form-control <?php echo !empty($billing_last_name_err) ? 'border border-danger' : ''; ?>" value="<?php echo !empty($_POST['billingLastName']) ? $_POST['billingLastName'] : $driver_last_name; ?>">
@@ -287,7 +603,7 @@ $replace_filename = array('_', '_', '_', '_');
                         <div class="col-md-6">
                             <label for="billingEmailAddress">Email Address</label>
                             
-                            <input type="text" id="billingEmailAddress" name="billingEmailAddress" class="form-control <?php echo !empty($billing_email_address_err) ? 'border border-danger' : ''; ?>" value="<?php echo !empty($_POST['billingEmailAddress']) ? $_POST['billingEmailAddress'] : $driver_email_address; ?>">
+                            <input type="email" id="billingEmailAddress" name="billingEmailAddress" class="form-control <?php echo !empty($billing_email_address_err) ? 'border border-danger' : ''; ?>" value="<?php echo !empty($_POST['billingEmailAddress']) ? $_POST['billingEmailAddress'] : $driver_email_address; ?>">
                             
                             <?php
                             if (isset($billing_email_address_err) && !empty($billing_email_address_err)) {
@@ -297,7 +613,7 @@ $replace_filename = array('_', '_', '_', '_');
                             ?>
                         </div>
                         
-                        <div class="col-md-6">
+                        <div class="col-md-6 mt-4 mt-md-0">
                             <label for="billingContactNumber">Contact Number</label>
                             
                             <input type="text" id="billingContactNumber" name="billingContactNumber" class="form-control <?php echo !empty($billing_contact_number_err) ? 'border border-danger' : ''; ?>" value="<?php echo !empty($_POST['billingContactNumber']) ? $_POST['billingContactNumber'] : $driver_contact_number; ?>">
@@ -325,7 +641,7 @@ $replace_filename = array('_', '_', '_', '_');
                             ?>
                         </div>
                         
-                        <div class="col-md-6">
+                        <div class="col-md-6 mt-4 mt-md-0">
                             <label for="billingAddress2">Address 2</label>
                             
                             <input type="text" id="billingAddress2" name="billingAddress2" class="form-control <?php echo !empty($billing_address_2_err) ? 'border border-danger' : ''; ?>" value="<?php echo $_POST['billingAddress2']; ?>">
@@ -353,7 +669,7 @@ $replace_filename = array('_', '_', '_', '_');
                             ?>
                         </div>
                         
-                        <div class="col-md-3">
+                        <div class="col-md-3 mt-4 mt-md-0">
                             <label for="billingPostalCode">Postal Code</label>
                             
                             <input type="text" id="billingPostalCode" name="billingPostalCode" class="form-control <?php echo !empty($billing_postal_code_err) ? 'border border-danger' : ''; ?>" value="<?php echo $_POST['billingPostalCode']; ?>">
@@ -366,7 +682,7 @@ $replace_filename = array('_', '_', '_', '_');
                             ?>
                         </div>
                         
-                        <div class="col-md-3">
+                        <div class="col-md-3 mt-4 mt-md-0">
                             <label for="billingState">State</label>
                             
                             <input type="text" id="billingState" name="billingState" class="form-control <?php echo !empty($billing_state_err) ? 'border border-danger' : ''; ?>" value="<?php echo $_POST['billingState']; ?>">
@@ -379,7 +695,7 @@ $replace_filename = array('_', '_', '_', '_');
                             ?>
                         </div>
                         
-                        <div class="col-md-3">
+                        <div class="col-md-3 mt-4 mt-md-0">
                             <label for="billingCountry">Country</label>
                             
                             <select id="billingCountry" class="form-control <?php echo !empty($billing_country_err) ? 'border border-danger' : ''; ?>" name="billingCountry">
@@ -415,7 +731,7 @@ $replace_filename = array('_', '_', '_', '_');
                     
                     <h4>Payment Details</h4>
 					
-					<div class="row form-group align-items-center">
+					<div class="row form-group mt-4 align-items-center">
 						<label for="billingPaymentMethod" class="col-md-3">Payment Method</label>
 						
 						<div class="col-md-9">
@@ -426,7 +742,7 @@ $replace_filename = array('_', '_', '_', '_');
                                 $payment_method_array = array('american_express' => 'American Express', 'mastercard' => 'MasterCard', 'visa' => 'Visa');
 
 								foreach ($payment_method_array as $method_value => $method_name) {
-									$selected_payment_method = (isset($_GET['billingPaymentMethod']) && $_GET['billingPaymentMethod'] == $method_value ? ' selected="selected"' : '');
+									$selected_payment_method = (isset($_POST['billingPaymentMethod']) && $_POST['billingPaymentMethod'] == $method_value ? ' selected="selected"' : '');
 
 									echo '<option value="' . $method_value . '" ' . $selected_payment_method . '>' . $method_name . '</option>';
 
@@ -443,36 +759,39 @@ $replace_filename = array('_', '_', '_', '_');
 						</div>
 					</div>
                     
-                    <div class="row mt-4">
+                    <div id="paymentCard" class="row mt-4 <?php echo !empty($billing_err) && empty($billing_payment_method_err) ? 'd-flex' : '' ?>">
+                        <!-- Credit Card Front -->
                         <div class="col-lg-6">
                             <div class="card bg-dark text-white">
                                 <div class="card-body mt-5 px-4">
-									<input type="text" class="form-control-sm w-100 border-0" placeholder="Card Number">
-                                    <!--<p class="card-text lead">1234 5678 9012 3456</p>-->
+                                    <label for="billingCardNumber" class="sr-only">Card Number</label>
+                                    
+									<input type="text" class="form-control-sm w-100 <?php echo $billing_card_number_err == TRUE && empty($billing_payment_method_err) ? 'border border-danger' : 'border-0'; ?>" id="billingCardNumber" name="billingCardNumber" placeholder="Card Number" value="<?php echo $_POST['billingCardNumber']; ?>">
                                     
                                     <div class="row justify-content-md-center mt-3">
                                         <div class="col-md-auto ml-5 mw-100">
-											<label for="" class="small ml-5 pl-3">Valid Thru</label>
+											<label for="billingCardExpiryDate" class="small ml-5 pl-3">Valid Thru</label>
 											
-											<input type="text" class="form-control-sm w-25 border-0" placeholder="mm / yy">
-                                            <!--<p class="mb-0 card-text"><span class="small">Valid Thru</span> <span id="">01/20</span></p>-->
+											<input type="text" id="billingCardExpiryDate" name="billingCardExpiryDate" class="form-control-sm w-25 <?php echo $billing_card_expiry_date_err == TRUE && empty($billing_payment_method_err) ? 'border border-danger' : 'border-0'; ?>" placeholder="mm / yy" value="<?php echo $_POST['billingCardExpiryDate']; ?>">
                                         </div>
                                     </div>
                                     
                                     <div class="row mt-3 align-items-end">
                                         <div class="col-7">
-											<input type="text" class="form-control-sm w-100 border-0" placeholder="Name on Card">
-                                            <!--<p class="card-text text-uppercase">Xiao Yu Lim</p>-->
+                                            <label for="billingCardName" class="sr-only">Name on Card</label>
+                                            
+											<input type="text" id="billingCardName" name="billingCardName" class="form-control-sm w-100 <?php echo $billing_card_name_err == TRUE && empty($billing_payment_method_err) ? 'border border-danger' : 'border-0'; ?>" placeholder="Name on Card" value="<?php echo $_POST['billingCardName']; ?>">
                                         </div>
                                         
                                         <div class="col-5">
-                                            <img id="paymentIcon" class="float-right w-75 mw-100" src="/moov/assets/payment_mastercard_icon.svg">
+                                            <img id="paymentIcon" class="float-right w-75 mw-100">
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         
+                        <!-- Credit Card Rear -->
                         <div class="col-lg-6 mt-4 mt-lg-0">
                             <div class="card bg-dark text-white">
 								<span class="row mx-0 bg-light mt-4" style="height: 35px;"></span>
@@ -480,21 +799,51 @@ $replace_filename = array('_', '_', '_', '_');
                                 <div class="card-body px-4">
                                     <div class="row justify-content-md-center">
                                         <div class="col-md-auto">
-											<input type="number" min="000" class="number-hide mr-4 float-right form-control-sm w-25 border-0" placeholder="CCV">
-                                            <!--<p class="mb-0 ml-5 card-text"><span id="">003</span></p>-->
+                                            <label for="billingCardCvv" class="sr-only">CVV</label>
+                                            
+											<input type="number" min="000" max="999" id="billingCardCvv" name="billingCardCvv" class="number-hide mr-4 float-right form-control-sm <?php echo $billing_card_cvv_err == TRUE && empty($billing_payment_method_err) ? 'border border-danger' : 'border-0'; ?>" placeholder="CCV" value="<?php echo $_POST['billingCardCvv']; ?>">
                                         </div>
                                     </div>
                                     
-                                    <span class="row mt-5" style="height: 47px;"></span>
+                                    <span class="row mt-5" style="height: 53px;"></span>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                    
+                    <?php
+                    if (isset($billing_err) && !empty($billing_err) && empty($billing_payment_method_err)) {
+                        echo '<p class="text-danger mb-0">' . $billing_err . '</p>';
+
+                    }
+                    ?>
+                    
+                    <div class="row mt-5">
+                        <div class="col-6">
+                            <a class="btn btn-primary btn-block" href="javascript:history.go(-1)" role="button">Cancel</a>
+                        </div>
+                        
+                        <div class="col-6">
+                            <button id="paySubmitButton" type="submit" class="btn btn-secondary btn-block">
+                                <span id="submitButton">Pay</span>
+
+                                <img id="processingIcon" src="/moov/assets/images/processing_icon.svg" class="processing-icon d-none">
+                                <span id="processingButton" class="d-none">Processing...</span>
+                            </button>
                         </div>
                     </div>
                 </form>
 				
 				<script>
+                    document.getElementById('checkout').onload = function () {
+                        document.getElementById('paymentCard').style.display = 'none';
+                        
+                    }
+                    
 					function showPaymentIcon(selectedPaymentMethod) {
-						document.getElementById('paymentIcon').src = '/moov/assets/payment_' + selectedPaymentMethod + '_icon.svg';
+						document.getElementById('paymentIcon').src = '/moov/assets/images/payment_' + selectedPaymentMethod + '_icon.svg';
+                        document.getElementById('paymentCard').style.display = 'flex';
+                        
 					}
 				</script>
             </div>

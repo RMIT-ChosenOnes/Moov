@@ -71,7 +71,7 @@ if (isset($_SESSION['moov_user_temp_register']) && $_SESSION['moov_user_temp_reg
 			$dl_first_name_err = 'Please enter your first name. First Name must match on driving license.';
 
 		} else {
-			if (preg_match('/^[a-zA-zw\-\s]+$/', trim($_POST['dlFirstName']))) {
+			if (preg_match('/^[a-zA-zw\-\s]{3,100}$/', trim($_POST['dlFirstName']))) {
 				$dl_first_name = ucwords(trim($_POST['dlFirstName']));
 
 			} else {
@@ -84,7 +84,7 @@ if (isset($_SESSION['moov_user_temp_register']) && $_SESSION['moov_user_temp_reg
 			$dl_last_name_err = 'Please enter your last name. Last Name must match on driving license.';
 
 		} else {
-			if (preg_match('/^[a-zA-zw\-\s]+$/', trim($_POST['dlLastName']))) {
+			if (preg_match('/^[a-zA-zw\-\s]{2,100}$/', trim($_POST['dlLastName']))) {
 				$dl_last_name = ucwords(trim($_POST['dlLastName']));
 
 			} else {
