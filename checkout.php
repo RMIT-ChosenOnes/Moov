@@ -3,7 +3,7 @@ session_start();
 require_once 'config.php';
 $page_name = 'find-cars';
 
-$booking_car_id = $booking_pick_up_date = $booking_pick_up_time = $booking_return_date = $booking_return_time = $booking_duration = $booking_amount = $billing_first_name = $billing_last_name = $billing_email_address = $billing_contact_number = $billing_address_1 = $billing_address_2 = $billing_suburb = $billing_postal_code = $billing_state = $billing_country = $billing_payment_method = $billing_card_number = $billing_temp_card_number = $billing_card_expiry_date = $billing_card_name = $billing_card_cvv = '';
+$booking_car_id = $booking_pick_up = $booking_return = $booking_duration = $booking_amount = $booking_location = $booking_location_url = $billing_first_name = $billing_last_name = $billing_email_address = $billing_contact_number = $billing_address_1 = $billing_address_2 = $billing_suburb = $billing_postal_code = $billing_state = $billing_country = $billing_payment_method = $billing_card_number = $billing_temp_card_number = $billing_card_expiry_date = $billing_card_name = $billing_card_cvv = '';
 $billing_first_name_err = $billing_last_name_err = $billing_email_address_err = $billing_contact_number_err = $billing_address_1_err = $billing_address_2_err = $billing_suburb_err = $billing_postal_code_err = $billing_state_err = $billing_country_err = $billing_payment_method_err = $billing_err = '';
 $billing_card_number_err = $billing_card_expiry_date_err = $billing_card_name_err = $billing_card_cvv_err = FALSE;
 
@@ -15,14 +15,44 @@ $replace_contact_number_symbol = array('', '');
 $search_date_symbol = array('/', '.');
 $replace_date_symbol = array('-', '-');
 
+$booking_url = 'id=' . $_GET['id'] . '&bookPickUpDate=' . $_GET['bookPickUpDate'] . '&bookPickUpTime=' . $_GET['bookPickUpTime'] . '&bookReturnDate=' . $_GET['bookReturnDate'] . '&bookReturnTime=' . $_GET['bookReturnTime'];
+
+if (empty($_GET['id']) || empty($_GET['bookPickUpDate']) || empty($_GET['bookPickUpTime']) || empty($_GET['bookReturnDate']) || empty($_GET['bookReturnTime'])) {
+    //header('location: /moov/find-cars');
+    
+} elseif (!isset($_SESSION['moov_user_logged_in']) || $_SESSION['moov_user_logged_in'] != TRUE) {
+    header('location: /moov/login?url=/moov/checkout?' . urlencode($booking_url));
+    
+} else {
+	$check_car_status_sql = 'SELECT car_id FROM moov.booking WHERE (pick_up_date BETWEEN ? AND ?) OR (return_date BETWEEN ? AND ?) AND car_id = ?';
+	$check_car_status_stmt = mysqli_prepare($conn, $check_car_status_sql);
+	
+	mysqli_stmt_bind_param($check_car_status_stmt, 'ssss', $param_pick_up, $param_return, $param_pick_up, $param_return, $param_car_id);
+	$param_pick_up = date('Y-m-d H:i', strtotime($_GET['bookPickUpDate'] . ' ' . $_GET['bookPickUpTime']));
+	$param_return = date('Y-m-d H:i', strtotime($_GET['bookReturnDate'] . ' ' . $_GET['bookReturnTime']));
+	$param_car_id = $_GET['id'];
+	
+	if (mysqli_stmt_execute($check_car_status_stmt)) {
+		mysqli_stmt_store_result($check_car_status_stmt);
+		
+		if (mysqli_stmt_num_rows($check_car_status_stmt) > 0 || $param_pick_up > $param_return) {
+			header('location: /moov/find-cars');
+			
+		}
+	}
+	
+	mysqli_stmt_close($check_car_status_stmt);
+	
+}
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $booking_car_id = $_POST['bookingCarId'];
-    $booking_pick_up_date = $_POST['bookingPickUpDate'];
-    $booking_pick_up_time = $_POST['bookingPickUpTime'];
-    $booking_return_date = $_POST['bookingReturnDate'];
-    $booking_return_time = $_POST['bookingReturnTime'];
+    $booking_pick_up = date('Y-m-d H:i', strtotime($_POST['bookingPickUpDate'] . ' ' . $_POST['bookingPickUpTime']));
+    $booking_return = date('Y-m-d H:i', strtotime($_POST['bookingReturnDate'] . ' ' . $_POST['bookingReturnTime']));
     $booking_duration = $_POST['bookingDuration'];
     $booking_amount = $_POST['bookingAmount'];
+	$booking_location = str_replace('<br/>', ' ', $_POST['bookingLocation']);
+	$booking_location_url = $_POST['bookingLocationUrl'];
     
     if (empty(trim($_POST['billingFirstName']))) {
         $billing_first_name_err = 'Please enter your first name.';
@@ -284,31 +314,69 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if (mysqli_stmt_execute($register_new_payment_stmt)) {
                 $payment_id = mysqli_insert_id($conn);
                 
-                $register_new_booking_sql = 'INSERT INTO booking (customer_id, car_id, billing_id, payment_id, pick_up_date, pick_up_time, return_date, return_time, duration, amount) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+                $register_new_booking_sql = 'INSERT INTO booking (customer_id, car_id, billing_id, payment_id, pick_up_date, return_date, duration, amount) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
                 $register_new_booking_stmt = mysqli_prepare($conn, $register_new_booking_sql);
                 
-                mysqli_stmt_bind_param($register_new_booking_stmt, 'iiiissssss', $param_customer_id, $param_car_id, $param_billing_id, $param_payment_id, $param_booking_pick_up_date, $param_booking_pick_up_time, $param_booking_return_date, $param_booking_return_time, $param_booking_duration, $param_booking_amount);
+                mysqli_stmt_bind_param($register_new_booking_stmt, 'iiiissss', $param_customer_id, $param_car_id, $param_billing_id, $param_payment_id, $param_booking_pick_up_date, $param_booking_return_date, $param_booking_duration, $param_booking_amount);
                 $param_customer_id = $_SESSION['moov_user_account_id'];
                 $param_car_id = $booking_car_id;
                 $param_billing_id = $billing_id;
                 $param_payment_id = $payment_id;
-                $param_booking_pick_up_date = $booking_pick_up_date;
-                $param_booking_pick_up_time = $booking_pick_up_time;
-                $param_booking_return_date = $booking_return_date;
-                $param_booking_return_time = $booking_return_time;
+                $param_booking_pick_up_date = $booking_pick_up;
+                $param_booking_return_date = $booking_return;
                 $param_booking_duration = $booking_duration;
                 $param_booking_amount = $booking_amount;
                 
                 if (mysqli_stmt_execute($register_new_booking_stmt)) {
-                    
+					$booking_id = mysqli_insert_id($conn);
+					
+                    $mail_email = $_SESSION['moov_user_email_address'];
+					$mail_name = $_SESSION['moov_user_display_name'];
+					$mail_subject = '[Moov] #' . $booking_id . ' Booking Confirmed';
+					$mail_body = '<h1>Dear ' . $_SESSION['moov_user_display_name'] . ',</h1><p class="my-4 text-left">Your booking, #' . $booking_id . ' is now confirmed. Please find your booking details below.</p><ul class="my-4 text-left"><li><b>Car:</b> ' . $_POST['bookingCarName'] . '</li><li><b>Model:</b> ' . $_POST['bookingCarModel'] . '</li><li><b>Pick Up:</b> ' . $booking_pick_up . '</li><li><b>Return:</b> ' . $booking_return . '</li><li><b>Parked Location:</b> <a href="' . $booking_location_url . '">' . $booking_location . '</a></li></ul><p class="my-4 text-left">Thanks for driving with Moov. Safe trip!</p><p class="my-4 text-left">Kind Regards,<br/>Moov Admin</p>';
+
+					require_once 'mail/mail-customer.php';
+					
+					$_SESSION['moov_user_booking_id'] = $booking_id;
+					$_SESSION['moov_user_booking_pick_up'] = $booking_pick_up;
+					$_SESSION['moov_user_booking_return'] = $booking_return;
+					$_SESSION['moov_user_booking_location'] = $booking_location;
+					$_SESSION['moov_user_booking_location_url'] = $booking_location_url;
+					$_SESSION['moov_user_booking_car_image'] = $_POST['bookingCarImage'];
+					$_SESSION['moov_user_booking_car_name'] = $_POST['bookingCarName'];
+					$_SESSION['moov_user_booking_car_model'] = $_POST['bookingCarModel'];
+					$_SESSION['moov_user_booking_location_longitude'] = $_POST['bookingLocationLongitude'];
+					$_SESSION['moov_user_booking_location_latitude'] = $_POST['bookingLocationLatitude'];
+					
+					sleep(10);
+					
+					unset($_POST);
+					header('location: /moov/booking-confirmed');
+
                 } else {
-                    echo mysqli_stmt_error($register_new_booking_stmt);
+                    $booking_error = TRUE;
+					$error_message = mysqli_error($conn);
+					
                 }
+				
+				mysqli_stmt_close($register_new_booking_stmt);
+				
             } else {
-                echo mysqli_stmt_error($register_new_payment_stmt);
+                $booking_error = TRUE;
+				$error_message = mysqli_error($conn);
                 
             }
-        }
+			
+			mysqli_stmt_close($register_new_payment_stmt);
+			
+        } else {
+			$booking_error = TRUE;
+			$error_message = mysqli_error($conn);
+			
+		}
+		
+		mysqli_stmt_close($register_new_billing_stmt);
+		
     }
 }
 ?>
@@ -360,6 +428,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 		<h1 class="text-center">Checkout</h1>
         
         <?php
+		if ($booking_error === TRUE) {
+            echo '
+            <div class="alert alert-warning my-4 alert-dismissible fade show" role="alert">
+                Oops! There is an error occurred. Please try again later. If you continue to see this error, please contact us immediately.
+
+			' . (!empty($error_message) ? '<br/><br/><b>Error:</b> ' . $error_message : '') . '
+
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            ';
+        }
+		
 		$get_car_details_sql = 'SELECT * FROM moov_portal.car AS car LEFT JOIN moov_portal.car_location ON car.car_id = moov_portal.car_location.car_id WHERE car.car_id = ?';
 		$get_car_details_stmt = mysqli_prepare($conn, $get_car_details_sql);
 		
@@ -393,6 +475,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 				$car_price_per_hour = $car_details['price_per_hour'];
 				$car_location = $car_details['address_1'] . ',<br/>' . (!empty($car_details['address_2']) ? $car_details['address_2'] . ',<br/>' : '') . $car_details['suburb'] . ' ' . $car_details['postal_code'] . ' ' . strtoupper($car_details['state']);
 				$car_location_url = 'https://www.google.com/maps?q=' . $car_details['longitude'] . ',' . $car_details['latitude'];
+				$car_longitude = $car_details['longitude'];
+				$car_latitude = $car_details['latitude'];
 				
 			}
 		}
@@ -463,7 +547,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $duration_day_string = '';
 
             // Check if hour is more than 6 and day is 0
-            if ($duration_hour > 6 && $duration_day == 0) {
+            if ($duration_hour > 5 && $duration_day == 0) {
                 $total_price = $car_price_per_day;
                 $discount = TRUE;
 
@@ -498,8 +582,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $discount_price = $total_duration * $car_price_per_hour;
         $discounted_total_price = $discount_price - $total_price;
         $gst = $total_price * 0.10;
-        
-        $booking_url = '?id=' . $_GET['id'] . '&bookPickUpDate=' . $_GET['bookPickUpDate'] . '&bookPickUpTime=' . $_GET['bookPickUpTime'] . '&bookReturnDate=' . $_GET['bookReturnDate'] . '&bookReturnTime=' . $_GET['bookReturnTime'];
 		?>
         <div class="row mt-5">
             <div class="col-md-4">
@@ -560,7 +642,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </div>
             
             <div class="col-md-8 mt-4 mt-md-0">
-                <form action="<?php echo basename(htmlspecialchars($_SERVER['PHP_SELF']), '.php') . $booking_url; ?>" method="post" onSubmit="submitButton()">
+                <form action="<?php echo basename(htmlspecialchars($_SERVER['PHP_SELF']), '.php') . '?' . $booking_url; ?>" method="post" onSubmit="submitButton()">
                     <input type="hidden" id="bookingCarId" name="bookingCarId" value="<?php echo $_GET['id']; ?>">
                     <input type="hidden" id="bookingPickUpDate" name="bookingPickUpDate" value="<?php echo $_GET['bookPickUpDate']; ?>">
                     <input type="hidden" id="bookingPickUpTime" name="bookingPickUpTime" value="<?php echo $_GET['bookPickUpTime']; ?>">
@@ -568,6 +650,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <input type="hidden" id="bookingReturnTime" name="bookingReturnTime" value="<?php echo $_GET['bookReturnTime']; ?>">
                     <input type="hidden" id="bookingDuration" name="bookingDuration" value="<?php echo $total_duration; ?>">
                     <input type="hidden" id="bookingAmount" name="bookingAmount" value="<?php echo number_format($total_price + $gst, 2);?>">
+					<input type="hidden" id="bookingLocation" name="bookingLocation" value="<?php echo $car_location; ?>">
+					<input type="hidden" id="bookingLocationUrl" name="bookingLocationUrl" value="<?php echo $car_location_url; ?>">
+					<input type="hidden" id="bookingCarName" name="bookingCarName" value="<?php echo $car_friendly_name; ?>">
+					<input type="hidden" id="bookingCarModel" name="bookingCarModel" value="<?php echo $car_brand . ' ' . $car_model; ?>">
+					<input type="hidden" id="bookingCarImage" name="bookingCarImage" value="<?php echo $car_image_name; ?>">
+					<input type="hidden" id="bookingLocationLongitude" name="bookingLocationLongitude" value="<?php echo $car_longitude; ?>">
+					<input type="hidden" id="bookingLocationLatitude" name="bookingLocationLatitude" value="<?php echo $car_latitude; ?>">
                     
                     <h4>Billing Details</h4>
                     
@@ -575,7 +664,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <div class="col-md-6">
                             <label for="billingFirstName">First Name</label>
                             
-                            <input type="text" id="billingFirstName" name="billingFirstName" class="form-control <?php echo !empty($billing_first_name_err) ? 'border border-danger' : ''; ?>" value="<?php echo !empty($_POST['billingFirstName']) ? $_POST['billingFirstName'] : $driver_first_name; ?>">
+                            <input type="text" id="billingFirstName" name="billingFirstName" class="form-control <?php echo !empty($billing_first_name_err) ? 'border border-danger' : ''; ?>" value="<?php echo !empty($_POST['billingFirstName']) ? $_POST['billingFirstName'] : $driver_first_name; ?>" onKeyUp="changeEventButton(this)">
                             
                             <?php
                             if (isset($billing_first_name_err) && !empty($billing_first_name_err)) {
@@ -588,7 +677,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <div class="col-md-6 mt-4 mt-md-0">
                             <label for="billingLastName">Last Name</label>
                             
-                            <input type="text" id="billingLastName" name="billingLastName" class="form-control <?php echo !empty($billing_last_name_err) ? 'border border-danger' : ''; ?>" value="<?php echo !empty($_POST['billingLastName']) ? $_POST['billingLastName'] : $driver_last_name; ?>">
+                            <input type="text" id="billingLastName" name="billingLastName" class="form-control <?php echo !empty($billing_last_name_err) ? 'border border-danger' : ''; ?>" value="<?php echo !empty($_POST['billingLastName']) ? $_POST['billingLastName'] : $driver_last_name; ?>" onKeyUp="changeEventButton(this)">
                             
                             <?php
                             if (isset($billing_last_name_err) && !empty($billing_last_name_err)) {
@@ -603,7 +692,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <div class="col-md-6">
                             <label for="billingEmailAddress">Email Address</label>
                             
-                            <input type="email" id="billingEmailAddress" name="billingEmailAddress" class="form-control <?php echo !empty($billing_email_address_err) ? 'border border-danger' : ''; ?>" value="<?php echo !empty($_POST['billingEmailAddress']) ? $_POST['billingEmailAddress'] : $driver_email_address; ?>">
+                            <input type="email" id="billingEmailAddress" name="billingEmailAddress" class="form-control <?php echo !empty($billing_email_address_err) ? 'border border-danger' : ''; ?>" value="<?php echo !empty($_POST['billingEmailAddress']) ? $_POST['billingEmailAddress'] : $driver_email_address; ?>" onKeyUp="changeEventButton(this)">
                             
                             <?php
                             if (isset($billing_email_address_err) && !empty($billing_email_address_err)) {
@@ -616,7 +705,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <div class="col-md-6 mt-4 mt-md-0">
                             <label for="billingContactNumber">Contact Number</label>
                             
-                            <input type="text" id="billingContactNumber" name="billingContactNumber" class="form-control <?php echo !empty($billing_contact_number_err) ? 'border border-danger' : ''; ?>" value="<?php echo !empty($_POST['billingContactNumber']) ? $_POST['billingContactNumber'] : $driver_contact_number; ?>">
+                            <input type="text" id="billingContactNumber" name="billingContactNumber" class="form-control <?php echo !empty($billing_contact_number_err) ? 'border border-danger' : ''; ?>" value="<?php echo !empty($_POST['billingContactNumber']) ? $_POST['billingContactNumber'] : $driver_contact_number; ?>" onKeyUp="changeEventButton(this)">
                             
                             <?php
                             if (isset($billing_contact_number_err) && !empty($billing_contact_number_err)) {
@@ -631,7 +720,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <div class="col-md-6">
                             <label for="billingAddress1">Address 1</label>
                             
-                            <input type="text" id="billingAddress1" name="billingAddress1" class="form-control <?php echo !empty($billing_address_1_err) ? 'border border-danger' : ''; ?>" value="<?php echo $_POST['billingAddress1']; ?>">
+                            <input type="text" id="billingAddress1" name="billingAddress1" class="form-control <?php echo !empty($billing_address_1_err) ? 'border border-danger' : ''; ?>" value="<?php echo $_POST['billingAddress1']; ?>" onKeyUp="changeEventButton(this)">
                             
                             <?php
                             if (isset($billing_address_1_err) && !empty($billing_address_1_err)) {
@@ -644,7 +733,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <div class="col-md-6 mt-4 mt-md-0">
                             <label for="billingAddress2">Address 2</label>
                             
-                            <input type="text" id="billingAddress2" name="billingAddress2" class="form-control <?php echo !empty($billing_address_2_err) ? 'border border-danger' : ''; ?>" value="<?php echo $_POST['billingAddress2']; ?>">
+                            <input type="text" id="billingAddress2" name="billingAddress2" class="form-control <?php echo !empty($billing_address_2_err) ? 'border border-danger' : ''; ?>" value="<?php echo $_POST['billingAddress2']; ?>" onKeyUp="changeEventButton(this)">
                             
                             <?php
                             if (isset($billing_address_2_err) && !empty($billing_address_2_err)) {
@@ -659,7 +748,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <div class="col-md-3">
                             <label for="billingSuburb">Suburb</label>
                             
-                            <input type="text" id="billingSuburb" name="billingSuburb" class="form-control <?php echo !empty($billing_suburb_err) ? 'border border-danger' : ''; ?>" value="<?php echo $_POST['billingSuburb']; ?>">
+                            <input type="text" id="billingSuburb" name="billingSuburb" class="form-control <?php echo !empty($billing_suburb_err) ? 'border border-danger' : ''; ?>" value="<?php echo $_POST['billingSuburb']; ?>" onKeyUp="changeEventButton(this)">
                             
                             <?php
                             if (isset($billing_suburb_err) && !empty($billing_suburb_err)) {
@@ -672,7 +761,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <div class="col-md-3 mt-4 mt-md-0">
                             <label for="billingPostalCode">Postal Code</label>
                             
-                            <input type="text" id="billingPostalCode" name="billingPostalCode" class="form-control <?php echo !empty($billing_postal_code_err) ? 'border border-danger' : ''; ?>" value="<?php echo $_POST['billingPostalCode']; ?>">
+                            <input type="text" id="billingPostalCode" name="billingPostalCode" class="form-control <?php echo !empty($billing_postal_code_err) ? 'border border-danger' : ''; ?>" value="<?php echo $_POST['billingPostalCode']; ?>" onKeyUp="changeEventButton(this)">
                             
                             <?php
                             if (isset($billing_postal_code_err) && !empty($billing_postal_code_err)) {
@@ -685,7 +774,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <div class="col-md-3 mt-4 mt-md-0">
                             <label for="billingState">State</label>
                             
-                            <input type="text" id="billingState" name="billingState" class="form-control <?php echo !empty($billing_state_err) ? 'border border-danger' : ''; ?>" value="<?php echo $_POST['billingState']; ?>">
+                            <input type="text" id="billingState" name="billingState" class="form-control <?php echo !empty($billing_state_err) ? 'border border-danger' : ''; ?>" value="<?php echo $_POST['billingState']; ?>" onKeyUp="changeEventButton(this)">
                             
                             <?php
                             if (isset($billing_state_err) && !empty($billing_state_err)) {
@@ -698,7 +787,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <div class="col-md-3 mt-4 mt-md-0">
                             <label for="billingCountry">Country</label>
                             
-                            <select id="billingCountry" class="form-control <?php echo !empty($billing_country_err) ? 'border border-danger' : ''; ?>" name="billingCountry">
+                            <select id="billingCountry" class="form-control <?php echo !empty($billing_country_err) ? 'border border-danger' : ''; ?>" name="billingCountry" onKeyUp="changeEventButton(this)">
                                 <option value="" selected>Select Country</option>
 
                                 <?php
@@ -735,7 +824,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 						<label for="billingPaymentMethod" class="col-md-3">Payment Method</label>
 						
 						<div class="col-md-9">
-							<select id="billingPaymentMethod" class="form-control <?php echo !empty($billing_payment_method_err) ? 'border border-danger' : ''; ?>" name="billingPaymentMethod" onChange="showPaymentIcon(this.value)">
+							<select id="billingPaymentMethod" class="form-control <?php echo !empty($billing_payment_method_err) ? 'border border-danger' : ''; ?>" name="billingPaymentMethod" onChange="showPaymentIcon(this.value)" onKeyUp="changeEventButton(this)">
                                 <option value="" selected>Select Payment Method</option>
 
                                 <?php
@@ -766,13 +855,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <div class="card-body mt-5 px-4">
                                     <label for="billingCardNumber" class="sr-only">Card Number</label>
                                     
-									<input type="text" class="form-control-sm w-100 <?php echo $billing_card_number_err == TRUE && empty($billing_payment_method_err) ? 'border border-danger' : 'border-0'; ?>" id="billingCardNumber" name="billingCardNumber" placeholder="Card Number" value="<?php echo $_POST['billingCardNumber']; ?>">
+									<input type="text" class="form-control-sm w-100 <?php echo $billing_card_number_err == TRUE && empty($billing_payment_method_err) ? 'border border-danger' : 'border-0'; ?>" id="billingCardNumber" name="billingCardNumber" placeholder="Card Number" value="<?php echo $_POST['billingCardNumber']; ?>" onKeyUp="changeEventButton(this)">
                                     
                                     <div class="row justify-content-md-center mt-3">
                                         <div class="col-md-auto ml-5 mw-100">
 											<label for="billingCardExpiryDate" class="small ml-5 pl-3">Valid Thru</label>
 											
-											<input type="text" id="billingCardExpiryDate" name="billingCardExpiryDate" class="form-control-sm w-25 <?php echo $billing_card_expiry_date_err == TRUE && empty($billing_payment_method_err) ? 'border border-danger' : 'border-0'; ?>" placeholder="mm / yy" value="<?php echo $_POST['billingCardExpiryDate']; ?>">
+											<input type="text" id="billingCardExpiryDate" name="billingCardExpiryDate" class="form-control-sm w-25 <?php echo $billing_card_expiry_date_err == TRUE && empty($billing_payment_method_err) ? 'border border-danger' : 'border-0'; ?>" placeholder="mm / yy" value="<?php echo $_POST['billingCardExpiryDate']; ?>" onKeyUp="changeEventButton(this)">
                                         </div>
                                     </div>
                                     
@@ -780,7 +869,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         <div class="col-7">
                                             <label for="billingCardName" class="sr-only">Name on Card</label>
                                             
-											<input type="text" id="billingCardName" name="billingCardName" class="form-control-sm w-100 <?php echo $billing_card_name_err == TRUE && empty($billing_payment_method_err) ? 'border border-danger' : 'border-0'; ?>" placeholder="Name on Card" value="<?php echo $_POST['billingCardName']; ?>">
+											<input type="text" id="billingCardName" name="billingCardName" class="form-control-sm w-100 <?php echo $billing_card_name_err == TRUE && empty($billing_payment_method_err) ? 'border border-danger' : 'border-0'; ?>" placeholder="Name on Card" value="<?php echo $_POST['billingCardName']; ?>" onKeyUp="changeEventButton(this)">
                                         </div>
                                         
                                         <div class="col-5">
@@ -801,7 +890,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         <div class="col-md-auto">
                                             <label for="billingCardCvv" class="sr-only">CVV</label>
                                             
-											<input type="number" min="000" max="999" id="billingCardCvv" name="billingCardCvv" class="number-hide mr-4 float-right form-control-sm <?php echo $billing_card_cvv_err == TRUE && empty($billing_payment_method_err) ? 'border border-danger' : 'border-0'; ?>" placeholder="CCV" value="<?php echo $_POST['billingCardCvv']; ?>">
+											<input type="number" min="000" max="999" id="billingCardCvv" name="billingCardCvv" class="number-hide w-25 mr-4 float-right form-control-sm <?php echo $billing_card_cvv_err == TRUE && empty($billing_payment_method_err) ? 'border border-danger' : 'border-0'; ?>" placeholder="CCV" value="<?php echo $_POST['billingCardCvv']; ?>" onKeyUp="changeEventButton(this)">
                                         </div>
                                     </div>
                                     
@@ -819,11 +908,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     ?>
                     
                     <div class="row mt-5">
-                        <div class="col-6">
+                        <div class="col-md-6">
                             <a class="btn btn-primary btn-block" href="javascript:history.go(-1)" role="button">Cancel</a>
                         </div>
                         
-                        <div class="col-6">
+                        <div class="col-md-6 mt-4 mt-md-0">
                             <button id="paySubmitButton" type="submit" class="btn btn-secondary btn-block">
                                 <span id="submitButton">Pay</span>
 
@@ -845,7 +934,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         document.getElementById('paymentCard').style.display = 'flex';
                         
 					}
-				</script>
+					
+					function submitButton() {
+						document.getElementById('paySubmitButton').disabled = true;
+						document.getElementById('submitButton').classList.add('d-none');
+						document.getElementById('processingIcon').classList.add('d-inline-block');
+						document.getElementById('processingIcon').classList.remove('d-none');
+						document.getElementById('processingButton').classList.remove('d-none');
+
+					}
+
+					function changeEventButton(event) {
+						if (event.keyCode == 13) {
+							event.preventDefault;
+
+							document.getElementById('paySubmitButton').disabled = true;
+							document.getElementById('submitButton').classList.add('d-none');
+							document.getElementById('processingIcon').classList.add('d-inline-block');
+							document.getElementById('processingIcon').classList.remove('d-none');
+							document.getElementById('processingButton').classList.remove('d-none');
+
+						}
+					}
+					</script>
             </div>
         </div>
 	</div>

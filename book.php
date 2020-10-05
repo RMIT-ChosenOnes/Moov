@@ -3,8 +3,13 @@ session_start();
 require_once 'config.php';
 $page_name = 'find-cars';
 
-$today_date = date('d/m/Y');
-$next_date = date('d/m/Y', strtotime('+1 day'));
+$booking_err = FALSE;
+$book_pick_up_date = $book_pick_up_time = $book_return_date = $book_return_time = $book_temp_pick_up_date = $book_temp_return_date = '';
+$book_pick_up_date_err = $book_pick_up_time_err = $book_return_date_err = $book_return_time_err = $book_err = '';
+
+$today_date = date('Y-m-d');
+$next_date = date('Y-m-d', strtotime('+1 day'));
+$current_time = date('H:i', strtotime('+30 minutes'));
 $sample_minute = array('00', '15', '30', '45');
 $search_filename = array('- ', ' ', '-', '.');
 $replace_filename = array('_', '_', '_', '_');
@@ -29,6 +34,54 @@ for ($i = 0; $i < 24; $i++) {
 if (empty($_GET['bookPickUpDate']) || empty($_GET['bookPickUpTime']) || empty($_GET['bookReturnDate']) || empty($_GET['bookReturnTime'])) {
 	header('location: /moov/find-cars');
 	
+} elseif ($_SERVER['REQUEST_METHOD'] == 'GET') {
+	// Check pick up date is older than return date
+	if (trim($_GET['bookPickUpDate']) > trim($_GET['bookReturnDate'])) {
+		$booking_err = TRUE;
+		$book_pick_up_date_err = $book_return_date_err = 'Return date is older than pick-up date.';
+
+	} elseif (trim($_GET['bookPickUpDate']) < $today_date) { // Check pick up date has past
+		$booking_err = TRUE;
+		$book_pick_up_date_err = 'Pick-up date has passed. Please try again.';
+
+	} else {
+		$book_temp_pick_up_date = trim($_GET['bookPickUpDate']);
+		$book_temp_return_date = trim($_GET['bookReturnDate']);
+
+	}
+    
+	if ($book_temp_pick_up_date == $today_date) {
+		// Check pick up time has past if pick up date is today
+		if ($_GET['bookPickUpTime'] < $current_time) {
+			$booking_err = TRUE;
+			$book_pick_up_time_err = 'You have selected either a past or too close to current time for your booking. Please try another pick-up time.';
+
+		} else {
+			$book_pick_up_time = $_GET['bookPickUpTime'];
+
+		}
+	} else {
+		$book_pick_up_time = $_GET['bookPickUpTime'];
+
+	}
+	
+	$book_return_time = $_GET['bookReturnTime'];
+    
+    if (empty($book_pick_up_date_err) && empty($book_pick_up_time_err) && empty($book_return_date_err) && empty($book_return_time_err)) {
+        $book_pick_up_date = date('Y-m-d H:i', strtotime(str_replace($search_date_symbol, $replace_date_symbol, $book_temp_pick_up_date . ' ' . $book_pick_up_time)));
+        $book_return_date = date('Y-m-d H:i', strtotime(str_replace($search_date_symbol, $replace_date_symbol, $book_temp_return_date . ' ' . $book_return_time)));
+		$accepted_return_date = date('Y-m-d H:i', strtotime($book_pick_up_date . '+30 minutes'));
+        
+        if ($book_pick_up_date > $book_return_date) {
+			$booking_err = TRUE;
+            $book_err = 'Return time is older than pick-up time.';
+            
+        } elseif ($book_return_date < $accepted_return_date) {
+			$booking_err = TRUE;
+			$book_err = 'Minimum booking duration is 30 minutes.';
+			
+		}
+    }
 }
 ?>
 
@@ -78,7 +131,6 @@ if (empty($_GET['bookPickUpDate']) || empty($_GET['bookPickUpTime']) || empty($_
 	<div class="container my-3 footer-align-bottom">
 		<h1 class="text-center">Find Cars</h1>
         
-        
         <div class="row mt-5">
             <!-- Car Filter Function -->
             <div class="col-md-3">
@@ -90,11 +142,11 @@ if (empty($_GET['bookPickUpDate']) || empty($_GET['bookPickUpTime']) || empty($_
                     
                     <div class="form-row">
                         <div class="col-7">
-                            <input type="date" class="form-control <?php echo !empty($book_pick_up_date_err) ? 'border border-danger' : ''; ?>" id="bookPickUpDate" name="bookPickUpDate" placeholder="dd / mm / yyyy" min="<?php echo $today_date; ?>" value="<?php echo !empty($_GET['bookPickUpDate']) ? $_GET['bookPickUpDate'] : $today_date; ?>" onChange="checkDateTime()">
+                            <input type="date" class="form-control <?php echo !empty($book_pick_up_date_err) || !empty($book_err) ? 'border border-danger' : ''; ?>" id="bookPickUpDate" name="bookPickUpDate" placeholder="dd / mm / yyyy" min="<?php echo $today_date; ?>" value="<?php echo !empty($_GET['bookPickUpDate']) ? $_GET['bookPickUpDate'] : $today_date; ?>" onChange="checkDateTime()">
                         </div>
                         
                         <div class="col">
-                            <select id="bookPickUpTime" class="form-control <?php echo !empty($book_pick_up_time_err) ? 'border border-danger' : ''; ?>" name="bookPickUpTime" onChange="checkDateTime()">
+                            <select id="bookPickUpTime" class="form-control <?php echo !empty($book_pick_up_time_err) || !empty($book_err) ? 'border border-danger' : ''; ?>" name="bookPickUpTime" onChange="checkDateTime()">
                                 <option value="" selected>Select Pick-Up Time</option>
 
                                 <?php
@@ -108,8 +160,8 @@ if (empty($_GET['bookPickUpDate']) || empty($_GET['bookPickUpTime']) || empty($_
                             </select>
                         </div>
 						
-						<p id="bookPickUpDateErr" class="text-danger mb-0 pl-1"></p>
-						<p id="bookPickUpTimeErr" class="text-danger mb-0 pl-1"></p>
+						<p id="bookPickUpDateErr" class="text-danger mb-0 pl-1"><?php echo $book_pick_up_date_err . $book_err; ?></p>
+						<p id="bookPickUpTimeErr" class="text-danger mb-0 pl-1"><?php echo $book_pick_up_time_err; ?></p>
                     </div>
                     
                     <!-- Return Filter -->
@@ -117,11 +169,11 @@ if (empty($_GET['bookPickUpDate']) || empty($_GET['bookPickUpTime']) || empty($_
                     
                     <div class="form-row">
                         <div class="col-7">
-                            <input type="date" class="form-control <?php echo !empty($book_return_date_err) ? 'border border-danger' : ''; ?>" id="bookReturnDate" name="bookReturnDate" placeholder="dd / mm / yyyy" min="<?php echo $next_date; ?>" value="<?php echo !empty($_GET['bookReturnDate']) ? $_GET['bookReturnDate'] : $next_date; ?>" onChange="checkDateTime()">
+                            <input type="date" class="form-control <?php echo !empty($book_return_date_err) || !empty($book_err) ? 'border border-danger' : ''; ?>" id="bookReturnDate" name="bookReturnDate" placeholder="dd / mm / yyyy" min="<?php echo $today_date; ?>" value="<?php echo !empty($_GET['bookReturnDate']) ? $_GET['bookReturnDate'] : $next_date; ?>" onChange="checkDateTime()">
                         </div>
                         
                         <div class="col">
-                            <select id="bookReturnTime" class="form-control <?php echo !empty($book_return_time_err) ? 'border border-danger' : ''; ?>" name="bookReturnTime" onChange="checkDateTime()">
+                            <select id="bookReturnTime" class="form-control <?php echo !empty($book_return_time_err) || !empty($book_err) ? 'border border-danger' : ''; ?>" name="bookReturnTime" onChange="checkDateTime()">
                                 <option value="" selected>Select Return Time</option>
 
                                 <?php
@@ -135,8 +187,8 @@ if (empty($_GET['bookPickUpDate']) || empty($_GET['bookPickUpTime']) || empty($_
                             </select>
                         </div>
 						
-						<p id="bookReturnDateErr" class="text-danger mb-0 pl-1"></p>
-						<p id="bookReturnTimeErr" class="text-danger mb-0 pl-1"></p>
+						<p id="bookReturnDateErr" class="text-danger mb-0 pl-1"><?php echo $book_return_date_err . $book_err; ?></p>
+						<p id="bookReturnTimeErr" class="text-danger mb-0 pl-1"><?php echo $book_return_time_err; ?></p>
                     </div>
                     
                     <!-- Search Bar -->
@@ -309,7 +361,7 @@ if (empty($_GET['bookPickUpDate']) || empty($_GET['bookPickUpTime']) || empty($_
 								';
 								
 								if (isset($_SESSION['moov_user_logged_in']) && $_SESSION['moov_user_logged_in'] == TRUE) {
-                                    echo '<a class="btn btn-secondary btn-block mt-4" role="button" href="/moov/checkout?' . $booking_url . '">Select</a>';
+                                    echo '<a class="btn btn-secondary btn-block mt-4 ' . ($booking_err == TRUE ? 'disabled' : '') . '" role="button" href="/moov/checkout?' . $booking_url . '">Select</a>';
                                     
                                 } else {
                                     echo '<a class="btn btn-primary btn-block mt-4" role="button" href="/moov/login?url=' . urlencode('/moov/book' . $search_engine_url) . '">Login to Book</a>';
@@ -346,7 +398,7 @@ if (empty($_GET['bookPickUpDate']) || empty($_GET['bookPickUpTime']) || empty($_
                                 ';
                                 
                                 if (isset($_SESSION['moov_user_logged_in']) && $_SESSION['moov_user_logged_in'] == TRUE) {
-                                    echo '<a class="btn btn-secondary btn-block" role="button" href="/moov/checkout?' . $booking_url . '">Select</a>';
+                                    echo '<a class="btn btn-secondary btn-block ' . ($booking_err == TRUE ? 'disabled' : '') . '" role="button" href="/moov/checkout?' . $booking_url . '">Select</a>';
                                     
                                 } else {
                                     echo '<a class="btn btn-primary btn-block" role="button" href="/moov/login?url=' . urlencode('/moov/book' . $search_engine_url) . '">Login to Book</a>';
