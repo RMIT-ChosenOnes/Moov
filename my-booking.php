@@ -71,9 +71,8 @@ if (!isset($_SESSION['moov_user_logged_in']) || $_SESSION['moov_user_logged_in']
         <div class="tab-content" id="myAccountContent">
 			<!-- Current Bookings -->
 			<div class="tab-pane fade show active" id="current-bookings" role="tabpanel" aria-labelledby="currentBookings">
-                
                 <?php
-                $get_current_booking_sql = 'SELECT *, IF(pick_up_date > CURRENT_TIMESTAMP, \'Future\', \'Active\') AS status FROM booking WHERE (pick_up_date >= CURRENT_TIMESTAMP) OR (pick_up_date < CURRENT_TIMESTAMP AND return_date > CURRENT_TIMESTAMP) AND (customer_id = ?)';
+                $get_current_booking_sql = 'SELECT *, IF(pick_up_date > CURRENT_TIMESTAMP, \'Future\', \'Active\') AS status FROM booking WHERE ((pick_up_date >= CURRENT_TIMESTAMP) OR (pick_up_date < CURRENT_TIMESTAMP AND return_date > CURRENT_TIMESTAMP)) AND (customer_id = ?)';
                 $get_current_booking_stmt = mysqli_prepare($conn, $get_current_booking_sql);
 
                 mysqli_stmt_bind_param($get_current_booking_stmt, 'i', $param_customer_id);
@@ -183,91 +182,205 @@ if (!isset($_SESSION['moov_user_logged_in']) || $_SESSION['moov_user_logged_in']
                             }
                         }
                         
+                        mysqli_stmt_close($get_car_details_stmt);
+                        
                         echo '
-                            <div class="row mt-4">
-                                <div class="col-md-5">
-                                    <img class="car-image rounded border-0" src="/moov/assets/images/transparent_background.png" style="background-image: url(\'/moov/car-image/' . $car_image_name . '.jpg\'); height: auto !important;">
-                                </div>
+                        <div class="row mt-4">
+                            <div class="col-md-5">
+                                <img class="car-image rounded border-0" src="/moov/assets/images/transparent_background.png" style="background-image: url(\'/moov/car-image/' . $car_image_name . '.jpg\'); height: auto !important;">
+                            </div>
 
-                                <div class="col-md-7 mt-4 mt-md-0">
-                                    <p class="lead font-weight-bold">' . $car_friendly_name . ($booking_status == 'Active' ? ' <span class="badge badge-danger align-middle">In Progress...</span>' : '') . '</p>
+                            <div class="col-md-7 mt-4 mt-md-0">
+                                <p class="lead font-weight-bold">' . $car_friendly_name . ($booking_status == 'Active' ? ' <span class="badge badge-danger align-middle">In Progress...</span>' : '') . '</p>
 
-                                    <p class="mb-2"><b>Booking ID:</b> #' . $booking_id . '</p>
+                                <p class="mb-2"><b>Booking ID:</b> #' . $booking_id . '</p>
 
-                                    <p class="mb-2"><b>Registration No.:</b> ' . $car_registration_number . '</p>
+                                <p class="mb-2"><b>Registration No.:</b> ' . $car_registration_number . '</p>
 
-                                    <p class="mb-2"><b>Pick Up:</b> ' . date('Y-m-d, H:s', strtotime($booking_pick_up)) . '</p>
+                                <p class="mb-2"><b>Pick Up:</b> ' . date('Y-m-d, H:s', strtotime($booking_pick_up)) . '</p>
 
-                                    <p class="mb-2"><b>Return:</b> ' . date('Y-m-d, H:s', strtotime($booking_return)) . '</p>
+                                <p class="mb-2"><b>Return:</b> ' . date('Y-m-d, H:s', strtotime($booking_return)) . '</p>
 
-                                    <button type="button" class="btn btn-secondary mt-4" data-toggle="modal" data-target="#booking' . $booking_id . '">View More</button>
+                                <button type="button" class="btn btn-secondary mt-4" data-toggle="modal" data-target="#booking' . $booking_id . '">View More</button>
 
-                                    <div class="modal fade" id="booking' . $booking_id . '" tabindex="-1" aria-labelledby="booking' . $booking_id . 'Label" aria-hidden="true">
-                                        <div class="modal-lg modal-dialog modal-dialog-centered">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h4 class="modal-title" id="booking' . $booking_id . 'Label">Booking #' . $booking_id . ($booking_status == 'Active' ? ' <span class="badge badge-danger align-middle">In Progress...</span>' : '') . '</h4>
+                                <div class="modal fade" id="booking' . $booking_id . '" tabindex="-1" aria-labelledby="booking' . $booking_id . 'Label" aria-hidden="true">
+                                    <div class="modal-lg modal-dialog modal-dialog-centered">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h4 class="modal-title" id="booking' . $booking_id . 'Label">Booking #' . $booking_id . ($booking_status == 'Active' ? ' <span class="badge badge-danger align-middle">In Progress...</span>' : '') . '</h4>
 
-                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                        <span aria-hidden="true">&times;</span>
-                                                    </button>
-                                                </div>
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
 
-                                                <div class="modal-body">
-                                                    <div class="row">
-                                                        <div class="col-md-6">
-                                                            <img class="car-image rounded border-0 mt-4" src="/moov/assets/images/transparent_background.png" style="background-image: url(\'/moov/car-image/' . $car_image_name . '.jpg\'); height: auto !important;">
-                                                        </div>
-
-                                                        <div class="col-md-6 mt-4 mt-md-0">
-                                                            <p class="lead font-weight-bold">' . $car_friendly_name . '</p>
-
-                                                            <p class="mb-3">' . $car_brand . ' ' . $car_model . ' ('. $car_transmission_type . ')</p>
-
-                                                            <p class="mb-1"><b>Registration No.:</b> ' . $car_registration_number . '</p>
-                                                            <p class="mb-1"><b>Fuel:</b> ' . $car_fuel_type . '</p>
-                                                            <p class="mb-1"><b>Color:</b> ' . $car_color . '</p>
-                                                            <p class="mb-3"><b>Other Features:</b> ' .$car_seat . ' seats | ' . $car_door . ' doors</p>
-
-                                                            <p class="mb-1"><b>Pick Up:</b> ' . date('Y-m-d, H:s', strtotime($booking_pick_up)) . '</p>
-
-                                                            <p class="mb-2"><b>Return:</b> ' . date('Y-m-d, H:s', strtotime($booking_return)) . '</p>
-                                                        </div>
+                                            <div class="modal-body">
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <img class="car-image rounded border-0 mt-4" src="/moov/assets/images/transparent_background.png" style="background-image: url(\'/moov/car-image/' . $car_image_name . '.jpg\'); height: auto !important;">
                                                     </div>
 
-                                                    <div class="row mt-3 mt-md-4">
-                                                        <div class="col-12">
-                                                            <p class="mb-3"><b>Parked Location:</b> ' . $car_location . '</p>
+                                                    <div class="col-md-6 mt-4 mt-md-0">
+                                                        <p class="lead font-weight-bold">' . $car_friendly_name . '</p>
 
-                                                            <div class="embed-responsive embed-responsive-16by9 mt-4">
-                                                                <iframe class="embed-responsive-item" src="https://www.google.com/maps/embed/v1/search?q=' . $car_location_longitude . ',' . $car_location_latitude . '&key=//AIzaSyASci3zGSQpHleNh10OQUpLzstQuWhvUjQ"></iframe>
-                                                            </div>
-                                                        </div>
+                                                        <p class="mb-3">' . $car_brand . ' ' . $car_model . ' ('. $car_transmission_type . ')</p>
+
+                                                        <p class="mb-1"><b>Registration No.:</b> ' . $car_registration_number . '</p>
+                                                        <p class="mb-1"><b>Fuel:</b> ' . $car_fuel_type . '</p>
+                                                        <p class="mb-1"><b>Color:</b> ' . $car_color . '</p>
+                                                        <p class="mb-3"><b>Other Features:</b> ' .$car_seat . ' seats | ' . $car_door . ' doors</p>
+
+                                                        <p class="mb-1"><b>Pick Up:</b> ' . date('Y-m-d, H:s', strtotime($booking_pick_up)) . '</p>
+
+                                                        <p class="mb-2"><b>Return:</b> ' . date('Y-m-d, H:s', strtotime($booking_return)) . '</p>
                                                     </div>
                                                 </div>
 
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
-                                                    
-                                                    <a role="button" href="#" class="btn btn-secondary disabled">Report</a>
+                                                <div class="row mt-3 mt-md-4">
+                                                    <div class="col-12">
+                                                        <p class="mb-3"><b>Parked Location:</b> <a href="https://www.google.com/maps?q=' . $car_location_longitude . ',' . $car_location_latitude . '" target="_blank">' . $car_location . '</a></p>
+
+                                                        <div class="embed-responsive embed-responsive-16by9 mt-4">
+                                                            <iframe class="embed-responsive-item" src="https://www.google.com/maps/embed/v1/search?q=' . $car_location_longitude . ',' . $car_location_latitude . '&key=//AIzaSyASci3zGSQpHleNh10OQUpLzstQuWhvUjQ"></iframe>
+                                                        </div>
+                                                    </div>
                                                 </div>
+                                            </div>
+
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+
+                                                <a role="button" href="#" class="btn btn-secondary disabled">Report</a>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                        </div>
 
-                            <hr class="my-5">
-                            ';
+                        <hr class="my-5">
+                        ';
+                        
+                    }
+                    
+                    if (mysqli_num_rows($get_car_details_stmt) == 0) {
+                        echo '
+                        <div class="jumbotron mt-4">
+                            <h4 class="text-center">You do not have any active or booking for future.</h4>
+                        </div>
+                        ';
                         
                     }
                 }
+                
+                mysqli_stmt_close($get_current_booking_stmt);
+                
                 ?>
-
 			</div>
 			
 			<div class="tab-pane fade show" id="past-bookings" role="tabpanel" aria-labelledby="pastBookings">
-				
+				<?php
+                $get_past_booking_sql = 'SELECT * FROM booking WHERE pick_up_date < CURRENT_TIMESTAMP AND return_date < CURRENT_TIMESTAMP AND customer_id = ?';
+                $get_past_booking_stmt = mysqli_prepare($conn, $get_past_booking_sql);
+
+                mysqli_stmt_bind_param($get_past_booking_stmt, 'i', $param_customer_id);
+                
+                if (mysqli_stmt_execute($get_past_booking_stmt)) {
+                    $get_past_booking = mysqli_stmt_get_result($get_past_booking_stmt);
+                    
+                    while ($past_booking = mysqli_fetch_assoc($get_past_booking)) {
+                        $past_booking_id = $past_booking['booking_id'];
+                        $past_booking_pick_up = $past_booking['pick_up_date'];
+                        $past_booking_return = $past_booking['return_date'];
+                        $past_booking_amount = $past_booking['amount'];
+
+                        $get_past_car_details_sql = 'SELECT * FROM moov_portal.car AS car LEFT JOIN moov_portal.car_location ON car.car_id = moov_portal.car_location.car_id WHERE car.car_id = ?';
+                        $get_past_car_details_stmt = mysqli_prepare($conn, $get_past_car_details_sql);
+
+                        mysqli_stmt_bind_param($get_past_car_details_stmt, 'i', $param_car_id);
+                        $param_car_id = $past_booking['car_id'];
+
+                        if (mysqli_stmt_execute($get_past_car_details_stmt)) {
+                            $get_past_car_details = mysqli_stmt_get_result($get_past_car_details_stmt);
+
+                            while ($past_car_details = mysqli_fetch_assoc($get_past_car_details)) {
+                                $past_car_friendly_name = $past_car_details['name'];
+                                $past_car_model = $past_car_details['model'];
+                                $past_car_location = $past_car_details['address_1'] . (!empty($past_car_details['address_2']) ? ', ' . $past_car_details['address_2'] : '') . ', ' . $past_car_details['suburb'] . ' ' . $past_car_details['postal_code'] . ' ' . strtoupper($past_car_details['state']) . ', Australia';
+                                $past_car_price_per_hour = $past_car_details['price_per_hour'];
+
+                                // Get car brand
+                                $get_past_brand_sql = 'SELECT brand FROM moov_portal.car_brand WHERE brand_id = ?';
+                                $get_past_brand_stmt = mysqli_prepare($conn, $get_past_brand_sql);
+
+                                mysqli_stmt_bind_param($get_past_brand_stmt, 'i', $param_past_car_brand);
+                                $param_past_car_brand = $past_car_details['brand'];
+
+                                if (mysqli_stmt_execute($get_past_brand_stmt)) {
+                                    $get_past_brand = mysqli_stmt_get_result($get_past_brand_stmt);
+
+                                    while ($past_brand = mysqli_fetch_assoc($get_past_brand)) {
+                                        $past_car_brand = $past_brand['brand'];
+
+                                    }
+                                }
+
+                                mysqli_stmt_close($get_past_brand_stmt);
+
+                                $past_car_temp_image_name = strtolower($past_car_brand . '_' . $past_car_details['model'] . '_' . $past_car_details['name']);
+                                $past_car_image_name = str_replace($search_filename, $replace_filename, $past_car_temp_image_name);
+
+                            }
+                        }
+                        
+                        mysqli_stmt_close($get_past_car_details_stmt);
+                        
+                        $get_past_payment_details_sql = 'SELECT * FROM booking_payment WHERE payment_id = ?';
+                        $get_past_paymemt_details_stmt = mysqli_prepare($conn, $get_past_payment_details_sql);
+                        
+                        mysqli_stmt_bind_param($get_past_paymemt_details_stmt, 'i', $param_past_payment_id);
+                        $param_past_payment_id = $past_booking['payment_id'];
+                        
+                        if (mysqli_stmt_execute($get_past_paymemt_details_stmt)) {
+                            $get_past_payment_details = mysqli_stmt_get_result($get_past_paymemt_details_stmt);
+                            
+                            while ($past_payment_details = mysqli_fetch_assoc($get_past_payment_details)) {
+                                $past_payment_method = ucwords(str_replace('_', ' ', $past_payment_details['payment_method']));
+                                $past_payment_card_number = substr($past_payment_details['card_number'], -4);
+                                
+                            }
+                        }
+                        
+                        echo '
+                        <div class="row mt-4 align-items-center">
+                            <div class="col-md-5">
+                                <img class="car-image rounded border-0" src="/moov/assets/images/transparent_background.png" style="background-image: url(\'/moov/car-image/' . $past_car_image_name . '.jpg\'); height: auto !important;">
+                            </div>
+
+                            <div class="col-md-7 mt-4 mt-md-0">
+                                <p class="lead font-weight-bold">' . date('Y-m-d, H:s', strtotime($past_booking_pick_up)) . ' - ' . date('Y-m-d, H:s', strtotime($past_booking_return)) . '</p>
+
+                                <p class="mb-2"><b>' . $past_car_friendly_name . '</b> (Booking #' . $past_booking_id . '), ' . $past_car_brand . ' ' . $past_car_model . '</p>
+
+                                <p class="mb-2"><b>Parked Location:</b> ' . $past_car_location . '</p>
+
+                                <p class="mb-2"><b>Price per Hour:</b> A$' . number_format($past_car_price_per_hour, 2, '.', ',') . '</p>
+
+                                <p class="mb-2"><b>Payment Method:</b> ' . $past_payment_method . ' <span class="font-italic">(ending with ' . $past_payment_card_number . ')</span></p>
+
+                                <p class="mb-0"><b>Total Paid Amount <span class="small font-italic">(Incl. GST)</span>:</b> A$' . number_format($past_booking_amount, 2, '.', ',') . '</p>
+                            </div>
+                        </div>
+
+                        <hr class="my-5">
+                        ';
+                        
+                    }
+                }
+                
+                mysqli_stmt_close($get_past_booking_stmt);
+                
+                ?>
 			</div>
 		</div>
 	</div>
