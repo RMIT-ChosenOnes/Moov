@@ -231,3 +231,20 @@
     -moz-appearance: textfield;
 }
 /* END hide number input selector */
+
+/* START badge animation */
+.badge {
+    -webkit-animation: blinking 1.5s infinite;
+    animation: blinking 1.5s infinite;
+}
+
+@-webkit-keyframes blinking {
+    0%, 100% {
+        opacity: 1;
+    }
+    
+    50% {
+        opacity: 0.2;
+    }
+}
+/* END badge animation */
