@@ -231,7 +231,7 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
         <?php
         if ($registered === TRUE) {
             echo '
-            <div class="alert alert-success my-4 alert-dismissible fade show" role="alert">
+            <div id="staffAccountCreatedAlert" class="alert alert-success my-4 alert-dismissible fade show" role="alert">
                 Account registered successfully.
 
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">

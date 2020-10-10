@@ -44,12 +44,17 @@
                 ';
 			}
 			?>
+           
+
+            <li class="nav-item <?php echo isset($page_name) && $page_name == 'report' ? 'active' : ''; ?>">
+                <a class="nav-link" href="/moov/portal/report/">Reports</a>
+            </li>
 
 			<li class="nav-item dropdown <?php echo isset($parent_page_name) && $parent_page_name == 'database' ? 'active' : ''; ?>">
-				<a class="nav-link dropdown-toggle" href="/moov/portal/database" id="databaseDropDownMenu" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Report</a>
+				<a class="nav-link dropdown-toggle" href="/moov/portal/database" id="databaseDropDownMenu" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Database</a>
 
 				<div class="dropdown-menu" aria-labelledby="databaseDropDownMenu">
-					<a class="dropdown-item disabled" href="">Car Report</a>
+					<a class="dropdown-item disabled" href="">Car Database</a>
 				</div>
 			</li>
 

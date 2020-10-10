@@ -36,8 +36,10 @@ if (!isset($_SESSION['moov_user_logged_in']) || $_SESSION['moov_user_logged_in']
 	</script>
 	
 	<!-- JavaScript from Bootstrap -->
-	<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
-	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+    <script src="./script/jquery.min.js"></script>
+    <!-- <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>-->
+
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
 	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
 	
 	<!-- CSS from Bootstrap v4.5.2 -->
@@ -250,7 +252,7 @@ if (!isset($_SESSION['moov_user_logged_in']) || $_SESSION['moov_user_logged_in']
                                             <div class="modal-footer">
                                                 <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
 
-                                                <a role="button" href="#" class="btn btn-secondary disabled">Report</a>
+                                                <a role="button" href="/moov/reports?booking_id='.$booking_id.'" class="btn btn-secondary">Report</a>
                                             </div>
                                         </div>
                                     </div>
@@ -263,10 +265,10 @@ if (!isset($_SESSION['moov_user_logged_in']) || $_SESSION['moov_user_logged_in']
                         
                     }
                     
-                    if (mysqli_num_rows($get_car_details_stmt) == 0) {
+                    if (mysqli_num_rows($get_current_booking) == 0) {
                         echo '
                         <div class="jumbotron mt-4">
-                            <h4 class="text-center">You do not have any active or booking for future.</h4>
+                            <h4 class="text-center display-4">You do not have any active or upcoming booking.</h4>
                         </div>
                         ';
                         
@@ -287,7 +289,7 @@ if (!isset($_SESSION['moov_user_logged_in']) || $_SESSION['moov_user_logged_in']
                 
                 if (mysqli_stmt_execute($get_past_booking_stmt)) {
                     $get_past_booking = mysqli_stmt_get_result($get_past_booking_stmt);
-                    
+					
                     while ($past_booking = mysqli_fetch_assoc($get_past_booking)) {
                         $past_booking_id = $past_booking['booking_id'];
                         $past_booking_pick_up = $past_booking['pick_up_date'];
@@ -376,6 +378,15 @@ if (!isset($_SESSION['moov_user_logged_in']) || $_SESSION['moov_user_logged_in']
                         ';
                         
                     }
+					
+					if (mysqli_num_rows($get_past_booking) == 0) {
+						echo '
+						<div class="jumbotron mt-4">
+							<h4 class="text-center display-4">You do not have any past booking.</h4>
+						</div>
+						';
+
+					}
                 }
                 
                 mysqli_stmt_close($get_past_booking_stmt);
