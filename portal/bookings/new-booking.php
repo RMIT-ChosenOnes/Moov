@@ -1,8 +1,27 @@
 <?php
 session_start();
 require_once '../config.php';
-$parent_page_name = '';
-$page_name = '';
+$parent_page_name = 'bookings';
+$page_name = basename(htmlspecialchars($_SERVER['PHP_SELF']), '.php');
+
+$booking_customer_id = $booking_customer_id_err = '';
+
+if (!isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_in'] != TRUE) {
+    header('location: /moov/portal/login?url=' . urlencode('/moov/portal/' . $parent_page_name . '/' . $page_name));
+    
+}
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    if (empty($_POST['bookingCustomerId'])) {
+        $booking_customer_id_err = 'Please select a customer account before you proceed to booking page.';
+        
+    }
+    
+    if (empty($booking_customer_id_err)) {
+        header('location: /moov/portal/bookings/new-booking-customer?id=' . $_POST['bookingCustomerId']);
+        
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -57,12 +76,12 @@ $page_name = '';
     <div class="container my-3 footer-align-bottom">
 		<h1 class="text-center">Register New Booking</h1>
         
-        <form action="<?php echo basename(htmlspecialchars($_SERVER['PHP_SELF']), '.php'); ?>" method="post">
+        <form action="<?php echo basename(htmlspecialchars($_SERVER['PHP_SELF']), '.php'); ?>" method="post" onSubmit="submitButton()">
             <div class="form-group row align-items-center mt-5">
                 <label for="bookingCustomerId" class="col-sm-2 col-form-label">Customer Account</label>
                 
                 <div class="col-sm-10">
-                    <select id="bookingCustomerId" class="form-control <?php echo !empty($book_pick_up_time_err) || !empty($book_err) ? 'border border-danger' : ''; ?>" name="bookingCustomerId">
+                    <select id="bookingCustomerId" class="form-control <?php echo !empty($booking_customer_id_err) ? 'border border-danger' : ''; ?>" name="bookingCustomerId" onChange="getAccountInfo(this.value)" onKeyUp="changeEventButton(this)">
                         <option value="" selected>Select Customer Account</option>
 
                         <?php
@@ -81,38 +100,176 @@ $page_name = '';
                         }
                         ?>
                     </select>
+                    
+                    <?php
+                    if (isset($booking_customer_id_err) && !empty($booking_customer_id_err)) {
+                        echo '<p class="text-danger mb-0">' . $booking_customer_id_err . '</p>';
+
+                    }
+                    ?>
                 </div>
             </div>
             
-            <div id="" class="">
+            <div id="customerInformation" class="container-fluid px-0">
                 <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group row">
-                            <label class="col-sm-4 col-form-label">First Name</label>
+                    <div class="col-md-6 order-last order-md-first">
+                        <div class="form-group row mt-4 align-items-center">
+                            <label class="col-4 col-form-label">First Name</label>
 
-                            <div class="col-sm-8">
-                                <input id="bookingCustomerFirstName" type="text" class="form-control-plaintext" value="Kelvin" disabled>
+                            <div class="col-8">
+                                <p id="bookingCustomerFirstName" class="form-control-plaintext text-break"></p>
                             </div>
                         </div>
                         
-                        <div class="form-group row">
-                            <label class="col-sm-4 col-form-label">Last Name</label>
+                        <div class="form-group row mt-4 align-items-center">
+                            <label class="col-4 col-form-label">Last Name</label>
 
-                            <div class="col-sm-8">
-                                <input id="bookingCustomerFirstName" type="text" class="form-control-plaintext" value="Ng" disabled>
+                            <div class="col-8">
+                                <p id="bookingCustomerLastName" class="form-control-plaintext text-break"></p>
+                            </div>
+                        </div>
+						
+						<div class="form-group row mt-4 align-items-center">
+                            <label class="col-4 col-form-label">Email Address</label>
+
+                            <div class="col-8">
+                                <p id="bookingCustomerEmailAddress" class="form-control-plaintext text-break"></p>
+                            </div>
+                        </div>
+						
+						<div class="form-group row mt-4 align-items-center">
+                            <label class="col-4 col-form-label">Date of Birth</label>
+
+                            <div class="col-8">
+                                <p id="bookingCustomerDateOfBirth" class="form-control-plaintext text-break"></p>
+                            </div>
+                        </div>
+						
+						<div class="form-group row mt-4 align-items-center">
+                            <label class="col-4 col-form-label">Contact Number</label>
+
+                            <div class="col-8">
+                                <p id="bookingCustomerContactNumber" class="form-control-plaintext text-break"></p>
+                            </div>
+                        </div>
+						
+						<div class="form-group row mt-4 align-items-center">
+                            <label class="col-4 col-form-label">License Status</label>
+
+                            <div class="col-8">
+                                <p id="bookingCustomerLicenseStatus" class="form-control-plaintext text-break"></p>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group row mt-4 align-items-center">
+                            <label class="col-4 col-form-label">Account Status</label>
+
+                            <div class="col-8">
+                                <p id="bookingCustomerAccountStatus" class="form-control-plaintext text-break"></p>
                             </div>
                         </div>
                     </div>
+					
+					<div class="col-md-6 text-center mt-4 order-first order-md-last">
+						<img id="bookingCustomerAvatar" class="rounded-circle customer-avatar" src="/moov/assets/images/transparent_background.png">
+					</div>
                 </div>
+				
+				<div class="row mt-5">
+                    <div class="col-12">
+                        <button id="bookingSubmitButton" type="submit" class="btn btn-primary btn-block">
+                            <span id="submitButton">Continue to Booking</span>
+
+                            <img id="processingIcon" src="/moov/portal/assets/images/processing_icon.svg" class="processing-icon d-none">
+                            <span id="processingButton" class="d-none">Processing...</span>
+                        </button>
+                    </div>
+				</div>
             </div>
         </form>
         
         <script>
             $(document).ready(function(){
-                // Initialize select2
-                $("#bookingCustomerId").select2();
+                $('#bookingCustomerId').select2();
+				$('#customerInformation').hide();
                 
             });
+			
+			function getAccountInfo(id) {
+				var xhttpAccount, resultAccount, parsedAccount, accountInfo;
+
+				if (id != '') {
+					xhttpAccount = new XMLHttpRequest();
+
+					xhttpAccount.onreadystatechange = function() {
+						if (this.readyState == 4 && this.status == 200) {
+							resultAccount = this.responseText;
+							parsedAccount = JSON.parse(resultAccount);
+							accountInfo = parsedAccount[0];
+
+							var avatarFileName = '/moov/avatar/' + accountInfo.avatarName;
+
+							document.getElementById('customerInformation').style.display = 'block';
+
+							document.getElementById('bookingCustomerFirstName').innerHTML = accountInfo.firstName;
+							document.getElementById('bookingCustomerLastName').innerHTML = accountInfo.lastName;
+							document.getElementById('bookingCustomerEmailAddress').innerHTML = accountInfo.emailAddress;
+							document.getElementById('bookingCustomerDateOfBirth').innerHTML = accountInfo.dateOfBirth;
+							document.getElementById('bookingCustomerContactNumber').innerHTML = '+61' + accountInfo.contactNumber;
+							document.getElementById('bookingCustomerLicenseStatus').innerHTML = accountInfo.dlStatus;
+							document.getElementById('bookingCustomerAvatar').style.backgroundImage = 'url(' + avatarFileName + ')';
+                            document.getElementById('bookingCustomerAccountStatus').innerHTML = accountInfo.accountStatus;
+                            
+                            document.getElementById('bookingCustomerAccountStatus').classList.remove('text-danger');
+                            document.getElementById('bookingCustomerAccountStatus').classList.remove('font-weight-bold');
+                            document.getElementById('bookingCustomerLicenseStatus').classList.remove('text-danger');
+                            document.getElementById('bookingCustomerLicenseStatus').classList.remove('font-weight-bold');
+                            document.getElementById('bookingSubmitButton').disabled = false;
+                            
+                            if (accountInfo.accountStatus == 'Deactivated' || accountInfo.accountStatus == 'Suspended') {
+                                document.getElementById('bookingCustomerAccountStatus').classList.add('text-danger');
+                                document.getElementById('bookingCustomerAccountStatus').classList.add('font-weight-bold');
+                                document.getElementById('bookingSubmitButton').disabled = true;
+                                
+                            } else if (accountInfo.dlStatus == 'Expired') {
+                                document.getElementById('bookingCustomerLicenseStatus').classList.add('text-danger');
+                                document.getElementById('bookingCustomerLicenseStatus').classList.add('font-weight-bold');
+                                document.getElementById('bookingSubmitButton').disabled = true;
+                                
+                            }
+						}
+					};
+
+					xhttpAccount.open('GET', '/moov/portal/bookings/get-account?id=' + id, true);
+					xhttpAccount.send();
+					
+				} else {
+					document.getElementById('customerInformation').style.display = 'none';
+					
+				}
+			}
+            
+            function submitButton() {
+                document.getElementById('bookingSubmitButton').disabled = true;
+                document.getElementById('submitButton').classList.add('d-none');
+                document.getElementById('processingIcon').classList.add('d-inline-block');
+                document.getElementById('processingIcon').classList.remove('d-none');
+                document.getElementById('processingButton').classList.remove('d-none');
+
+            }
+
+            function changeEventButton(event) {
+                if (event.keyCode == 13) {
+                    event.preventDefault;
+
+                    document.getElementById('bookingSubmitButton').disabled = true;
+                    document.getElementById('submitButton').classList.add('d-none');
+                    document.getElementById('processingIcon').classList.add('d-inline-block');
+                    document.getElementById('processingIcon').classList.remove('d-none');
+                    document.getElementById('processingButton').classList.remove('d-none');
+
+                }
+            }
         </script>
 	</div>
 

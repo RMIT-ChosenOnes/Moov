@@ -9,7 +9,7 @@
 
 	<div class="collapse navbar-collapse ml-lg-4" id="navigationBar">
 		<ul class="navbar-nav">
-			<!--<li class="nav-item <?php echo isset($page_name) && $page_name == 'dashboard' ? 'active' : ''; ?>">
+			<!--<li class="nav-item <?php //echo isset($page_name) && $page_name == 'dashboard' ? 'active' : ''; ?>">
 				<a class="nav-link" href="/moov/portal/">Dashboard</a>
 			</li>-->
             
