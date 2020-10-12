@@ -201,7 +201,7 @@ if (!isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_
                                 <td class="text-center align-middle">' . $customer_list['contact_number'] . '</td>
                                 <td class="text-center align-middle">' . $customer_account_status . '</td>
                                 <td class="text-center align-middle">
-                                    <a class="btn btn-primary btn-sm" href="modify-customer?id=' . $customer_list['account_id'] . '" role="button">Modify</a>
+                                    <a class="btn btn-primary btn-sm disabled" href="modify-customer?id=' . $customer_list['account_id'] . '" role="button">Modify</a>
                             ';
                             
                             if ($customer_list['is_suspended'] == 0) {
@@ -209,12 +209,12 @@ if (!isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_
                                 <a class="btn btn-primary btn-sm mt-3 mt-xl-0 ml-xl-2" href="suspend-customer?id=' . $customer_list['account_id'] . '" role="button">Suspend</a>
                                 ';
                                 
-                            } elseif ($customer_list['is_suspended'] == 1) {
+                            } /*elseif ($customer_list['is_suspended'] == 1) {
                                 echo '
                                 <a class="btn btn-primary btn-sm mt-3 mt-xl-0 ml-xl-2 disabled" href="resintate-customer?id=' . $customer_list['account_id'] . '" role="button">Reinstate</a>
                                 ';
                                 
-                            }
+                            }*/
                                     
                             echo '        
                                 </td>

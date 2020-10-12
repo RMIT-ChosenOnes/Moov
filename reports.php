@@ -102,7 +102,7 @@ $car_image_name = str_replace($search_filename, $replace_filename, $car_temp_ima
 <?php include 'header.php'; ?>
 
 <div class="container my-3 footer-align-bottom">
-    <h1 class="text-center">Reports</h1>
+    <h1 class="text-center">Reports #<?=$info['booking_id']?> </h1>
     <form action="reports_form.php" method="post" enctype="multipart/form-data">
         <div class="row">
             <div class="col-md-7 mt-4 mt-md-0">
@@ -118,7 +118,7 @@ $car_image_name = str_replace($search_filename, $replace_filename, $car_temp_ima
 
             </div>
             <div class="col-md-5 mt-4 mt-md-0">
-                <h4 class="font-weight-bold"> What want wrong ?</h4>
+                <h4 class="font-weight-bold"> What went wrong ?</h4>
                 <div>
                     <textarea rows="12" name="content" placeholder="Input ..." style="width: 100%" class="form-control" > </textarea>
                 </div>

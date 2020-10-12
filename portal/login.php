@@ -72,7 +72,7 @@ if (isset($_SESSION['moov_portal_logged_in']) && $_SESSION['moov_portal_logged_i
 										header('location: ' . $referrer_url);
 										
 									} else {
-										header('location: /moov/portal/');
+										header('location: /moov/portal/car/');
 										
 									}
 									

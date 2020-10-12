@@ -243,7 +243,7 @@ if (!isset($_SESSION['moov_user_logged_in']) || $_SESSION['moov_user_logged_in']
                                                         <p class="mb-3"><b>Parked Location:</b> <a href="https://www.google.com/maps?q=' . $car_location_longitude . ',' . $car_location_latitude . '" target="_blank">' . $car_location . '</a></p>
 
                                                         <div class="embed-responsive embed-responsive-16by9 mt-4">
-                                                            <iframe class="embed-responsive-item" src="https://www.google.com/maps/embed/v1/search?q=' . $car_location_longitude . ',' . $car_location_latitude . '&key=//AIzaSyASci3zGSQpHleNh10OQUpLzstQuWhvUjQ"></iframe>
+                                                            <iframe class="embed-responsive-item" src="https://www.google.com/maps/embed/v1/search?q=' . $car_location_longitude . ',' . $car_location_latitude . '&key=AIzaSyASci3zGSQpHleNh10OQUpLzstQuWhvUjQ"></iframe>
                                                         </div>
                                                     </div>
                                                 </div>

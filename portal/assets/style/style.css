@@ -138,3 +138,9 @@
     }
 }
 /* END car image upload button */
+
+/* START select2 */
+.select2.select2-container {
+    width: 100% !important;
+}
+/* END select2 */

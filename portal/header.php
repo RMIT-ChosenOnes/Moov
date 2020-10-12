@@ -9,13 +9,17 @@
 
 	<div class="collapse navbar-collapse ml-lg-4" id="navigationBar">
 		<ul class="navbar-nav">
-			<li class="nav-item <?php echo isset($page_name) && $page_name == 'dashboard' ? 'active' : ''; ?>">
+			<!--<li class="nav-item <?php echo isset($page_name) && $page_name == 'dashboard' ? 'active' : ''; ?>">
 				<a class="nav-link" href="/moov/portal/">Dashboard</a>
-			</li>
+			</li>-->
+            
+            <li class="nav-item dropdown <?php echo isset($parent_page_name) && $parent_page_name == 'bookings' ? 'active' : ''; ?>">
+                <a class="nav-link dropdown-toggle" href="/moov/portal/bookings/" id="databaseDropDownMenu" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Bookings</a>
 
-			<li class="nav-item <?php echo isset($page_name) && $page_name == 'bookings' ? 'active' : ''; ?>">
-				<a class="nav-link disabled" href="bookings">Bookings</a>
-			</li>
+                <div class="dropdown-menu" aria-labelledby="databaseDropDownMenu">
+                    <a class="dropdown-item <?php echo isset($page_name) && $page_name == 'new-booking' ? 'active' : ''; ?>" href="/moov/portal/bookings/new-booking">Register New Booking</a>
+                </div>
+            </li>
 			
             <li class="nav-item dropdown <?php echo isset($parent_page_name) && $parent_page_name == 'car' ? 'active' : ''; ?>">
                 <a class="nav-link dropdown-toggle" href="/moov/portal/car/" id="databaseDropDownMenu" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Car</a>
@@ -47,16 +51,8 @@
            
 
             <li class="nav-item <?php echo isset($page_name) && $page_name == 'report' ? 'active' : ''; ?>">
-                <a class="nav-link" href="/moov/portal/report/">Reports</a>
+                <a class="nav-link disabled" href="/moov/portal/report/">Reports</a>
             </li>
-
-			<li class="nav-item dropdown <?php echo isset($parent_page_name) && $parent_page_name == 'database' ? 'active' : ''; ?>">
-				<a class="nav-link dropdown-toggle" href="/moov/portal/database" id="databaseDropDownMenu" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Database</a>
-
-				<div class="dropdown-menu" aria-labelledby="databaseDropDownMenu">
-					<a class="dropdown-item disabled" href="">Car Database</a>
-				</div>
-			</li>
 
 			<li class="nav-item dropdown d-block d-lg-none">
 				<a class="nav-link dropdown-toggle <?php echo isset($parent_page_name) && $parent_page_name == 'profile' ? 'active' : ''; ?>" href="/moov/portal/" id="portalStaffDropDownMenu" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">G'day, <?php echo $_SESSION['moov_portal_staff_first_name']; ?></a>
