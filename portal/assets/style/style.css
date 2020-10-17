@@ -144,3 +144,10 @@
     width: 100% !important;
 }
 /* END select2 */
+
+/* START booking */
+#find-car-card {
+    width: 800px;
+    max-width: 100%;
+}
+/* END booking */
