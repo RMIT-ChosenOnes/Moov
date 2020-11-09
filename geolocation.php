@@ -1,6 +1,6 @@
 <?php
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+/*if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 	print_r($_FILES["fileToUpload"]);
 	
 $target_dir = "account-image/";
@@ -52,18 +52,37 @@ if ($uploadOk == 0) {
     echo "Sorry, there was an error uploading your file.";
   }
 }
-}
+}*/
 ?>
 
 <!doctype html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>geolocation</title>
+    <meta charset="UTF-8">
+    <title>geolocation</title>
+
+    <!-- JavaScript from Bootstrap -->
+	<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.1/js/select2.min.js"></script>
+    
+    <script src='assets/select2.min.js' type='text/javascript'></script>
+
+    <!-- CSS -->
+    <link href='assets/select2.min.css' rel='stylesheet' type='text/css'>
+
+	<!-- CSS from Bootstrap v4.5.2 -->
+	<link rel="stylesheet" type="text/css" href="/moov/assets/style/bootstrap.css">
+
+	<!-- Self Defined CSS -->
+	<link rel="stylesheet" type="text/css" href="/moov/assets/style/style.css?<?php echo date('l jS \of F Y h:i:s A'); ?>">
+    
 </head>
 
 <body>
-	<iframe src="https://www.google.com/maps/d/u/0/embed?mid=1L6jFc5iUkzb9vk5QYm4zHKYaT7yxxZ39" width="640" height="480"></iframe>
+    <!--<iframe src="https://www.google.com/maps/d/u/0/embed?mid=1L6jFc5iUkzb9vk5QYm4zHKYaT7yxxZ39" width="640" height="480"></iframe>
 	
 	<iframe title="Test" aria-label="chart" id="datawrapper-chart-7dQWc" src="https://datawrapper.dwcdn.net/7dQWc/1/" scrolling="no" frameborder="0" style="border: none;" width="550" height="481"></iframe>
 	
@@ -112,6 +131,42 @@ if ($uploadOk == 0) {
 	  Select image to upload:
 	  <input type="file" name="fileToUpload" id="fileToUpload">
 	  <input type="submit" value="Upload Image" name="submit">
-	</form>
+	</form>-->
+
+<form action="<?php echo basename(htmlspecialchars($_SERVER['PHP_SELF']), '.php'); ?>" method="post" onSubmit="submitButton()">
+    <select id='selUser' class="form-control" style='width: 200px;'>
+  <option value='0'>Select User</option> 
+  <option value='1'>Yogesh singh</option> 
+  <option value='2'>Sonarika Bhadoria</option> 
+  <option value='3'>Anil Singh</option> 
+  <option value='4'>Vishal Sahu</option> 
+  <option value='5'>Mayank Patidar</option> 
+  <option value='6'>Vijay Mourya</option> 
+  <option value='7'>Rakesh sahu</option> 
+</select>
+
+<input type='button' class="btn btn-primary" value='Seleted option' id='but_read'>
+    </form>
+
+<br/>
+<div id='result'></div>
+    
+    <script>
+    $(document).ready(function(){
+ 
+  // Initialize select2
+  $("#selUser").select2();
+
+  // Read selected option
+  $('#but_read').click(function(){
+    var username = $('#selUser option:selected').text();
+    var userid = $('#selUser').val();
+
+    $('#result').html("id : " + userid + ", name : " + username);
+
+  });
+});
+    </script>
+
 </body>
 </html>

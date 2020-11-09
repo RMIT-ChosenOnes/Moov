@@ -3,11 +3,11 @@ session_start();
 require_once 'config.php';
 $page_name = basename(htmlspecialchars($_SERVER['PHP_SELF']), '.php');
 
-$book_pick_up_date = $book_pick_up_time = $book_return_date = $book_return_time = '';
+$book_pick_up_date = $book_pick_up_time = $book_return_date = $book_return_time = $book_temp_pick_up_date = $book_temp_return_date = '';
 $book_pick_up_date_err = $book_pick_up_time_err = $book_return_date_err = $book_return_time_err = $book_err = '';
 
-$today_date = date('d/m/Y');
-$next_date = date('d/m/Y', strtotime('+1 day'));
+$today_date = date('Y-m-d');
+$next_date = date('Y-m-d', strtotime('+1 day'));
 $sample_minute = array('00', '15', '30', '45');
 $search_date_symbol = array('/', '.');
 $replace_date_symbol = array('-', '-');
@@ -40,12 +40,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $book_return_date_err = 'Please enter the return date of your booking.';
         
     } else {
-        // Check pick up date is bigger than return date
+        // Check pick up date is older than return date
         if (trim($_POST['bookPickUpDate']) > trim($_POST['bookReturnDate'])) {
-            $book_pick_up_date_err = $book_return_date_err = 'Return date must be bigger than pick-up date.';
+            $book_pick_up_date_err = $book_return_date_err = 'Return date is older than pick-up date.';
             
         } elseif (trim($_POST['bookPickUpDate']) < $today_date) { // Check pick up date has past
-            $book_pick_up_date_err = 'Please enter a valid pick-up date of your booking.';
+            $book_pick_up_date_err = 'Pick-up date has passed. Please try again.';
             
         } else {
             $book_temp_pick_up_date = trim($_POST['bookPickUpDate']);
@@ -61,14 +61,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     } else {
         if ($book_temp_pick_up_date == $today_date) {
             // Check pick up time has past if pick up date is today
-            if ($_POST['bookPickUpTime'] <= $current_time) {
-                $book_pick_up_time_err = 'You have selected either a past or too close to current pick-up time of your booking. Please try another pick-up time.';
+            if ($_POST['bookPickUpTime'] < $current_time) {
+                $book_pick_up_time_err = 'You have selected either a past or too close to current time for your booking. Please try another pick-up time.';
                 
             } else {
                 $book_pick_up_time = $_POST['bookPickUpTime'];
                 
             }
-        }
+        } else {
+			$book_pick_up_time = $_POST['bookPickUpTime'];
+			
+		}
     }
     
     // Check return time is empty
@@ -83,13 +86,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (empty($book_pick_up_date_err) && empty($book_pick_up_time_err) && empty($book_return_date_err) && empty($book_return_time_err)) {
         $book_pick_up_date = date('Y-m-d H:i', strtotime(str_replace($search_date_symbol, $replace_date_symbol, $book_temp_pick_up_date . ' ' . $book_pick_up_time)));
         $book_return_date = date('Y-m-d H:i', strtotime(str_replace($search_date_symbol, $replace_date_symbol, $book_temp_return_date . ' ' . $book_return_time)));
+		$accepted_return_date = date('Y-m-d H:i', strtotime($book_pick_up_date . '+30 minutes'));
         
         if ($book_pick_up_date > $book_return_date) {
-            $book_err = 'Return time must be bigger than pick-up time.';
+            $book_err = 'Return time is older than pick-up time.';
             
-        } else {
+        } elseif ($book_return_date < $accepted_return_date) {
+			$book_err = 'Minimum booking duration is 30 minutes.';
+			
+		} else {
             $redirect_url = '?bookPickUpDate=' . $book_temp_pick_up_date . '&bookPickUpTime=' . $book_pick_up_time . '&bookReturnDate=' . $book_temp_return_date . '&bookReturnTime=' . $book_return_time;
-            
+			
             unset($_POST);
             
             header('location: /moov/book' . $redirect_url);

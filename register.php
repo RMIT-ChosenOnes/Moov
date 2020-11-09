@@ -207,7 +207,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 					</div>
 				</div>
 
-				<button type="submit" class="btn btn-secondary btn-block mt-5">Continue Registration</button>
+				<button type="submit" id="userLoginSubmit" class="btn btn-secondary btn-block mt-5">Continue Registration</button>
 			</form>
 			
 			<p class="mb-0 mt-4 text-center">Already have an account? <a href="/moov/login">Login now.</a></p>

@@ -217,6 +217,8 @@ if (isset($_SESSION['moov_user_logged_in']) && $_SESSION['moov_user_logged_in'] 
 
         // Delete User Account
         if (isset($_POST['removeAccount'])) {
+            $ref_url = trim($_POST['ref']);
+            
             if (empty(trim($_POST['accountRemovePassword']))) {
                 $delete_error = TRUE;
                 $delete_error_message = 'You need to confirm your password before you can delete your account.';
@@ -461,8 +463,11 @@ if (isset($_SESSION['moov_user_logged_in']) && $_SESSION['moov_user_logged_in'] 
                         
                         if (mysqli_stmt_execute($set_current_license_expired_stmt)) {
                             $dl_updated = TRUE;
+                            
                             unset($_POST);
                             unset($_SESSION['moov_user_license_expired']);
+                            
+                            header('location: ' . $ref_url);
                             
                         } else {
                             $update_error = TRUE;
@@ -962,6 +967,7 @@ if (isset($_SESSION['moov_user_logged_in']) && $_SESSION['moov_user_logged_in'] 
 
                                                 <div class="modal-body">
                                                     <input type="hidden" name="drivingLicenseId" id="drivingLicenseId" value="<?php echo $saved_driving_license_id; ?>">
+                                                    <input type="hidden" name="ref" id="ref" value="<?php echo $_GET['ref'] . $_POST['ref']; ?>">
                                                     
                                                     <div class="form-group row">
                                                         <div class="col-sm-6">

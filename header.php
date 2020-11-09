@@ -1,4 +1,4 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-logo">
+<nav class="navbar navbar-expand-lg navbar-dark bg-logo sticky-top">
 	<a class="navbar-brand ml-lg-4" href="/chosen-ones/">
 		<img src="assets/logo/moov_logo_100x50.png" class="d-inline-block align-top w-100" alt="Moov" loading="lazy">
 	</a>
@@ -20,15 +20,26 @@
 	<div class="collapse navbar-collapse ml-lg-4" id="navigationBar">
 		<ul class="navbar-nav">
 			<li class="nav-item <?php echo isset($page_name) && $page_name == 'about us' ? 'active' : ''; ?>">
-				<a class="nav-link" href="about-us">About Us</a>
+				<a class="nav-link" href="/moov/about-us">About Us</a>
 			</li>
 			
 			<li class="nav-item <?php echo isset($page_name) && $page_name == 'find-cars' ? 'active' : ''; ?>">
-				<a class="nav-link" href="find-cars">Find Cars</a>
+				<a class="nav-link" href="/moov/find-cars">Find Cars</a>
 			</li>
+            
+            <?php
+            if (isset($_SESSION['moov_user_logged_in']) && $_SESSION['moov_user_logged_in'] == TRUE) {
+				echo '
+				<li class="nav-item ' . (isset($page_name) && $page_name == 'my-booking' ? 'active' : '') . '">
+                    <a class="nav-link" href="/moov/my-booking">My Bookings</a>
+                </li>
+				';
+				
+			}
+            ?>
 			
 			<li class="nav-item <?php echo isset($page_name) && $page_name == 'support' ? 'active' : ''; ?>">
-				<a class="nav-link" href="support">Support</a>
+				<a class="nav-link" href="/moov/contact-us">Support</a>
 			</li>
             
             <?php

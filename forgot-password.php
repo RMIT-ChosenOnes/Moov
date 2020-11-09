@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 		
 	} else {
 		$reset_email_address = trim($_POST['forgotEmailAddress']);
-		$verify_account_sql = 'SELECT display_name, is_deleted, is_deactivated FROM account WHERE email_address = ?';
+		$verify_account_sql = 'SELECT display_name, is_deleted, is_suspended FROM account WHERE email_address = ?';
 		
 		if ($verify_account_stmt = mysqli_prepare($conn, $verify_account_sql)) {
 			mysqli_stmt_bind_param($verify_account_stmt, 's', $param_email_address);

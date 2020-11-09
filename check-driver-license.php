@@ -20,6 +20,7 @@ if ($check_driver_license_expired_stmt = mysqli_prepare($conn, $check_driver_lic
 
                 $_SESSION['moov_user_logged_in'] = TRUE;
                 $_SESSION['moov_user_account_id'] = $param_user_account_id;
+				$_SESSION['moov_user_email_address'] = $param_email_address;
                 $_SESSION['moov_user_display_name'] = $user_display_name;
                 $_SESSION['moov_user_avatar_status'] = $user_avatar_status;
                 $_SESSION['moov_user_avatar_type'] = $user_avatar_type;
